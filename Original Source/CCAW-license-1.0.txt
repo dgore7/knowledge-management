@@ -1,0 +1,37 @@
+Software License
+Community Contribution of Academic Work
+Oct. 1, 2016
+
+Definitions of terms
+	"License" refers to the terms and conditions for use, derivation, and redistribution of the software (defined below).
+	
+	"Licensee" refers to the legal entity granted license rights by this document.
+	
+	"Licensor" refers to the owner of the copyright and any patents embodied by the software.
+	
+	"Object" refers to any form of the software that is produced by translating the source code into a compiled form.
+	
+	"Software" refers to the source code files, configuration files, object files, and documentation of the software that is supplied by the Licensor pursuant to this license.
+
+Ownership
+	The licensor of the software is the developer who created and who is properly identified in the files that comprise the software.
+	
+Agreement
+	By choosing to use the software, the licensee agrees to the terms of this License. 
+	
+Grant of copyright license
+	The licensor hereby grants to the licensee a non-exclusive, royalty-free right to use and prepare derivative works from the software for non-commercial purposes only, including using the software in order to provide non-commercial services to another.
+	
+Grant of patent license
+	The licensor hereby grants to the licensee a non-exclusive, royalty-free right to use and prepare derivative works from the software in any way that would be covered by any patents that may be granted in the future to the Licensor for non-commercial purposes only.
+	
+Redistribution
+	The licensee may not redistribute the software, in whole or in part, directly or through derivative works, to another. 
+	
+Endorsement
+	The licensee may inform others that the licensee uses the software to perform certain tasks; however, the licensee may not represent that the licensor endorses either the ways in which the licensee uses the software or the validity of any results produced or obtained through use of the software.
+
+Warranty
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
