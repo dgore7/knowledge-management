@@ -40,17 +40,8 @@ class GUI(tk.Tk):
 		window = tk.Frame(self)
 		window.pack(side="top", fill="both", expand="True")
 		window.grid_rowconfigure(0, weight=1)#Who gets prority
+
 		window.grid_columnconfigure(0, weight=1)
-
-		menubar = tk.Menu(window)
-		filemenu = tk.Menu(menubar, tearoff=0)
-		filemenu.add_command(label="Save Settings", command = lambda: print("Hello"))
-		filemenu.add_separator()
-		filemenu.add_command(label = "Exit", command = quit)
-
-		menubar.add_cascade(label="File", menu = filemenu)
-
-		tk.Tk.config(self, menu=menubar)
 
 		"""
 		A dictionary of frames. Used to change display between windows.
