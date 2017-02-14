@@ -1,5 +1,5 @@
 import threading
-from . import server_globals
+from server_globals import connections
 
 
 class RequestHandler(threading.Thread):
@@ -16,7 +16,7 @@ class RequestHandler(threading.Thread):
         else:
             print("Empty request body")
             self.connection.close()
-            server_globals.connections.remove(self.connection)
+            connections.remove(self.connection)
             return
 
     def process_request(self, request):

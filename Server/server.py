@@ -1,7 +1,7 @@
 import sys
 import socket
-from Server.request_handler import RequestHandler
-from Server import server_globals
+from request_handler import RequestHandler
+from server_globals import connections
 
 
 def create_socket(port, host='localhost'):
@@ -16,7 +16,7 @@ def server_loop(server):
     while True:
         sock, addr = server.accept()
         print("Recieved new connection from {}.".format(addr))
-        server_globals.connections.append(sock)
+        connections.append(sock)
         handler = RequestHandler(sock)
         handler.start()
 
