@@ -80,3 +80,4 @@ if __name__ == '__main__':
 	app = GUI(user)
 	app.geometry("400x150")
 	app.mainloop()
+	user.close_socket()
