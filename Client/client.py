@@ -1,6 +1,7 @@
 import sys
 import socket
 import os
+import time
 
 
 class Client:
@@ -38,10 +39,9 @@ class Client:
     def upload(self, filename, category, keywords):
         self.sock.send( "upload".encode() )
 
-        print(len(filename))
         msg= filename + ":" + category + ":" + keywords
 
-        self.sock.send( (msg.encode() ) )
+        self.sock.send( msg.encode() )
 
         try:
             file_stat = os.stat(filename)
@@ -50,11 +50,14 @@ class Client:
             file_exist = False
 
         file = open(filename)
-
-        for line in file.readlines():
+        for line in file:
+            print(line.rstrip('\n'))
             self.sock.send(line.encode())
 
         file.close()
+        time.sleep(0.37)
+        self.sock.send('0'.encode())
+        print("Closing file")
 
     def retrieve(self, filename):
         self.sock.send("retrieve".encode())
@@ -76,3 +79,6 @@ class Client:
         self.sock.send("delete".encode())
         self.sock.send(filename.encode())
         print(filename)
+
+    def close_socket(self):
+        self.sock.close()
