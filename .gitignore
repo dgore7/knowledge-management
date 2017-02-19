@@ -1,3 +1,9 @@
+# Stupid DS_Store files macs make
+.DS_Store
+
+# Pycharm files
+.idea/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
