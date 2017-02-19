@@ -1,5 +1,8 @@
 import threading
-from server_globals import connections
+import time
+from .server_globals import connections
+
+from Server.controllers import file_controller as f_ctrlr, user_controller as u_ctrlr
 
 
 class RequestHandler(threading.Thread):
@@ -8,16 +11,51 @@ class RequestHandler(threading.Thread):
         threading.Thread.__init__(self)
         self.connection = connection
 
+
     def run(self):
-        raw_request = self.connection.recv(2048)
-        if len(raw_request):
-            request = self.parse_request(raw_request.decode())
-            self.process_request(request)
-        else:
-            print("Empty request body")
-            self.connection.close()
-            connections.remove(self.connection)
-            return
+        lock = threading.Lock()
+        while True:
+            raw_request = self.connection.recv(2048)
+            if len(raw_request):
+                client_option = raw_request.decode()
+
+                if client_option == "login":
+                    msg = self.connection.recv(1024)
+                    print("Logging in with: " + msg.decode())
+                    u_ctrlr.login_user(msg)
+
+                elif client_option == "register":
+                    msg = self.connection.recv(1024)
+                    print("Registering user: " + msg.decode())
+                    u_ctrlr.register_user(msg)
+
+                elif client_option == "upload":
+                    msg = self.connection.recv(1024)
+                    print ("Received: " + msg.decode() )
+                    f_ctrlr.upload_file(self.connection, msg)
+
+                elif client_option == "retrieve":
+                    msg = self.connection.recv(1024)
+                    print("Retrieving File: " + msg.decode())
+                    f_ctrlr.retrieve_file(msg)
+
+                elif client_option == "search":
+                    msg = self.connection.recv(1024)
+                    print("Searching for: " + msg.decode())
+                    f_ctrlr.search_file(msg)
+
+                elif client_option == "delete":
+                    msg = self.connection.recv(1024)
+                    print("Deleting file: " + msg.decode())
+                    f_ctrlr.delete_file(msg)
+
+            #request = self.parse_request(raw_request.decode())
+            #self.process_request(request)
+            else:
+                print("Empty request body")
+                self.connection.close()
+                connections.remove(self.connection)
+                return
 
     def process_request(self, request):
         if "query" not in request:

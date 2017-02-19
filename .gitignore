@@ -1,6 +1,3 @@
-# Stupid DS_Store files macs make
-.DS_Store
-
 # Pycharm files
 .idea/
 
@@ -9,7 +6,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.db
-
+.idea
 # C extensions
 *.so
 
