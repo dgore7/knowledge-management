@@ -1,8 +1,7 @@
 import sys
 import socket
-from request_handler import RequestHandler
-from server_globals import connections
-from upload_handler import UploadHandler
+from Server.request_handler import RequestHandler
+from Server import connections
 
 
 def create_socket(port, host='localhost'):
