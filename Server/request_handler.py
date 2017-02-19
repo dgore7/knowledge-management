@@ -1,13 +1,9 @@
 import threading
 import time
-from server_globals import connections
+from .server_globals import connections
 
-from upload_handler import UploadHandler
-from retrieve_handler import  RetrieveHandler
-from login_handler import LoginHandler
-from register_handler import RegisterHandler
-from search_handler import SearchHandler
-from delete_handler import DeleteHandler
+from Server.controllers import file_controller as f_ctrlr, user_controller as u_ctrlr
+
 
 class RequestHandler(threading.Thread):
     """ A request handler class which runs in it's own thread """
@@ -26,33 +22,32 @@ class RequestHandler(threading.Thread):
                 if client_option == "login":
                     msg = self.connection.recv(1024)
                     print("Logging in with: " + msg.decode())
-                    LoginHandler(msg)
+                    u_ctrlr.login_user(msg)
 
                 elif client_option == "register":
                     msg = self.connection.recv(1024)
                     print("Registering user: " + msg.decode())
-                    RegisterHandler(msg)
+                    u_ctrlr.register_user(msg)
 
                 elif client_option == "upload":
                     msg = self.connection.recv(1024)
                     print ("Received: " + msg.decode() )
-                    UploadHandler(self.connection, msg, lock).start()
-                    time.sleep(2)
+                    f_ctrlr.upload_file(self.connection, msg)
 
                 elif client_option == "retrieve":
                     msg = self.connection.recv(1024)
                     print("Retrieving File: " + msg.decode())
-                    RetrieveHandler(msg)
+                    f_ctrlr.retrieve_file(msg)
 
                 elif client_option == "search":
                     msg = self.connection.recv(1024)
                     print("Searching for: " + msg.decode())
-                    SearchHandler(msg)
+                    f_ctrlr.search_file(msg)
 
                 elif client_option == "delete":
                     msg = self.connection.recv(1024)
                     print("Deleting file: " + msg.decode())
-                    DeleteHandler(msg)
+                    f_ctrlr.delete_file(msg)
 
             #request = self.parse_request(raw_request.decode())
             #self.process_request(request)
