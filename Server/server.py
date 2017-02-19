@@ -2,6 +2,7 @@ import sys
 import socket
 from request_handler import RequestHandler
 from server_globals import connections
+from upload_handler import UploadHandler
 
 
 def create_socket(port, host='localhost'):
@@ -20,6 +21,7 @@ def server_loop(server):
         handler = RequestHandler(sock)
         handler.start()
 
+        
 
 if __name__ == '__main__':
     server = create_socket(sys.argv[1] if len(sys.argv) >= 2 else 8001)
