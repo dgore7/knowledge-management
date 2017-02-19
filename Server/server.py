@@ -1,7 +1,8 @@
 import sys
 import socket
-from Server.request_handler import RequestHandler
-from Server import server_globals
+from request_handler import RequestHandler
+from server_globals import connections
+from upload_handler import UploadHandler
 
 
 def create_socket(port, host='localhost'):
@@ -16,10 +17,11 @@ def server_loop(server):
     while True:
         sock, addr = server.accept()
         print("Recieved new connection from {}.".format(addr))
-        server_globals.connections.append(sock)
+        connections.append(sock)
         handler = RequestHandler(sock)
         handler.start()
 
+        
 
 if __name__ == '__main__':
     server = create_socket(sys.argv[1] if len(sys.argv) >= 2 else 8001)
