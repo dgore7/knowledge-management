@@ -14,11 +14,11 @@ class Client:
         # TODO: NEED TO ADD CODE TO IMPORT A PUB KEY (or cert) WHICH WE WILL PUT IN THE CLIENT FILES AHEAD OF TIME!
 
 
-        #host = 'localhost'
-        #port = 8001
+        host = 'localhost'
+        port = 8001
 
-        #self.sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-        #self.sock.connect((host,port))
+        self.sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+        self.sock.connect((host,port))
         print("Initialized")
         #message = "query:" + sys.stdin.readline()
         #self.sock.send(message.encode())
@@ -59,7 +59,7 @@ class Client:
             # Add password hashing code in here (use username as salt?)
             # Note that sha3_512 requires 3.6. sha512 is a less secure option
             # to maintain compatibility with older platforms
-            hashedPass = hashlib.sha3_512(password).hexdigest()
+            hashedPass = hashlib.sha3_512(password.encode()).hexdigest()
             return 1
         else:
             return 0
@@ -74,7 +74,7 @@ class Client:
             # Add password hashing code in here (use username as salt?)
             # Note that sha3_512 requires 3.6. sha512 is a less secure option
             # to maintain compatibility with older platforms
-            hashedPass = hashlib.sha3_512(password).hexdigest()
+            hashedPass = hashlib.sha3_512(password.encode()).hexdigest()
             return 1
         else:
             return 0

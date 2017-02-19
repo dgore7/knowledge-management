@@ -13,7 +13,7 @@ def create_socket(port, host='localhost'):
     print("Server started on {}:{}".format(host, port))
     return server
 
-def create_secure_socket(port, host='localhost', cert_dir):
+def create_secure_socket(port, cert_dir, host='localhost'):
     context = ssl.SSLContext() # Defaults to SSL/TLS support
     context.verify_mode = ssl.CERT_OPTIONAL # ssl.CERT_REQUIRED is more secure
     context.check_hostname = False # Hostname verification on certs (Dont want for now)
