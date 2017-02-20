@@ -4,7 +4,8 @@ from Server.request_handler import RequestHandler
 from Server import connections
 
 import ssl
-import OpenSSL
+from OpenSSL import crypto
+from os.path import exists, join
 
 def create_socket(port, host='localhost'):
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -13,15 +14,16 @@ def create_socket(port, host='localhost'):
     print("Server started on {}:{}".format(host, port))
     return server
 
-def create_secure_socket(port, cert_dir, host='localhost'):
-    context = ssl.SSLContext() # Defaults to SSL/TLS support
+def create_secure_socket(cert_dir, host='localhost', port=8001):
+    context = ssl.SSLContext(ssl.PROTOCOL_TLS) # Defaults to SSL/TLS support
     context.verify_mode = ssl.CERT_OPTIONAL # ssl.CERT_REQUIRED is more secure
     context.check_hostname = False # Hostname verification on certs (Dont want for now)
-    context.load_default_certs(purpose=Purpose.CLIENT_AUTH) # Load the public CA certs for the server socket (need CLIENT_AUTH param)
-    context.load_cert_chain(certfilePath, keyfile=keyfilePath) # TODO FIX THE certfile path!!!!!!!!!!
+    context.load_default_certs(purpose=ssl.Purpose.CLIENT_AUTH) # Load the public CA certs for the server socket (need CLIENT_AUTH param)
+    generate_server_self_cert(cert_dir)
+    context.load_cert_chain(join(cert_dir, "KnowledgeManagement.crt"), keyfile=join(cert_dir, "KnowledgeManagement.key")) # TODO FIX THE certfile path!!!!!!!!!!
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    secureSocket = context.wrap_socket(server, server_side = True)
+    secureSocket = context.wrap_socket(server, server_side=True)
     secureSocket.bind((host, port))
     print("SSL Server started on {}:{}".format(host, port))
     return secureSocket
@@ -75,6 +77,6 @@ def server_loop(server):
         
 
 if __name__ == '__main__':
-    server = create_socket(sys.argv[1] if len(sys.argv) >= 2 else 8001)
+    server = create_secure_socket("/Users/jsmith/Documents/CSC376/keyfiles/", 'localhost',8001)
     server.listen(10)
     server_loop(server)

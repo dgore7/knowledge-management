@@ -17,8 +17,9 @@ class Client:
         host = 'localhost'
         port = 8001
 
-        self.sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-        self.sock.connect((host,port))
+        #self.sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+        #self.sock.connect((host,port))
+        self.connect()
         print("Initialized")
         #message = "query:" + sys.stdin.readline()
         #self.sock.send(message.encode())
@@ -33,9 +34,14 @@ class Client:
         #If it's self signed, I dont think we need a CA cert to verify?
 
         if not self.connected:
+            context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)  # Defaults to SSL/TLS support
+            context.verify_mode = ssl.CERT_REQUIRED # ssl.CERT_REQUIRED is more secure
+            context.check_hostname = True  # Hostname verification on certs (Dont want for now)
+            context.load_verify_locations(cafile='/Users/jsmith/Documents/CSC376/keyfiles/KnowledgeManagement.crt')
             self.sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-            self.secureSock = ssl.wrap_socket(self.sock, server_side = False)
-            self.secureSock.connect((host, port))
+            self.sock = context.wrap_socket(self.sock, server_side = False,server_hostname='lpc-depaulsecure-219-223.depaulsecure-student.depaul.edu')
+
+            self.sock.connect((host, port))
             self.connected = True
             print("Secure connection successful!")
         else:
@@ -43,8 +49,8 @@ class Client:
 
     def disconnect(self):
         if self.connected:
-            self.secureSock.shutdown()
-            self.secureSock.close()
+            self.sock.shutdown()
+            self.sock.close()
             self.connected = False
             print("Disconnection successful!")
         else:
@@ -59,7 +65,7 @@ class Client:
             # Add password hashing code in here (use username as salt?)
             # Note that sha3_512 requires 3.6. sha512 is a less secure option
             # to maintain compatibility with older platforms
-            hashedPass = hashlib.sha3_512(password.encode()).hexdigest()
+            #hashedPass = hashlib.sha3_512(password.encode()).hexdigest()
             return 1
         else:
             return 0
@@ -74,7 +80,7 @@ class Client:
             # Add password hashing code in here (use username as salt?)
             # Note that sha3_512 requires 3.6. sha512 is a less secure option
             # to maintain compatibility with older platforms
-            hashedPass = hashlib.sha3_512(password.encode()).hexdigest()
+            #hashedPass = hashlib.sha3_512(password.encode()).hexdigest()
             return 1
         else:
             return 0
