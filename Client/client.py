@@ -9,7 +9,6 @@ import codecs
 class Client:
     def __init__(self):
         print("Client Created")
-        
 
     def connect(self):
         host = 'localhost'
@@ -20,7 +19,6 @@ class Client:
         print("Success")
         
         return sock
-
 
     def login(self, username, password):
         connection = self.connect()
@@ -46,10 +44,11 @@ class Client:
             return 0
 
     def register(self, username, password):
-        self.sock.send( "register".encode() )
+        sock = self.connect()
+        sock.send( "register".encode() )
 
         register_info = username + ":" + password
-        self.sock.send(register_info.encode())
+        sock.send(register_info.encode())
 
         if username and password:
             return 1
@@ -81,11 +80,7 @@ class Client:
         file = open(filename, "rb")
         #file = codecs.open(filename, "rb", "utf-8")
         for line in file:
-<<<<<<< HEAD
             #sys.stdout.write(line.decode())
-=======
-            # sys.stdout.write(line.decode())
->>>>>>> ebb5cab83d77ba41f44b40477c48becf0f27b5fe
             connection.send(line)
 
         file.close()
@@ -93,28 +88,28 @@ class Client:
         connection.close()
 
     def retrieve(self, filename):
-        self.sock.send("retrieve".encode())
+        sock = self.connect()
+        sock.send("retrieve".encode())
 
-        self.sock.send(filename.encode())
-
-
+        sock.send(filename.encode())
         print(filename)
+        sock.close()
 
     def search(self, filename):
-
-        self.sock.send("search".encode())
+        sock = self.connect()
+        sock.send("search".encode())
 
         #Maybe can use query statement here
-        self.sock.send(filename.encode())
+        sock.send(filename.encode())
         print(filename)
+        sock.close()
 
     def delete(self, filename):
-
-        self.sock.send("delete".encode())
-        self.sock.send(filename.encode())
+        sock = self.connect()
+        sock.send("delete".encode())
+        sock.send(filename.encode())
         print(filename)
+        sock.close()
 
-    def close_socket(self):
-        connection = self.connect()
-        connection.close()
+
 
