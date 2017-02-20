@@ -2,7 +2,7 @@ import threading
 import time
 from .server_globals import connections
 
-from Server.controllers import file_controller as f_ctrlr, user_controller as u_ctrlr
+from Server.controllers import file_controller as f_ctrlr, user_controller as u_ctrlr, db as DB
 
 
 class RequestHandler(threading.Thread):
@@ -22,7 +22,11 @@ class RequestHandler(threading.Thread):
                 if client_option == "login":
                     msg = self.connection.recv(1024)
                     print("Logging in with: " + msg.decode())
-                    u_ctrlr.login_user(msg)
+                    if u_ctrlr.login_user(msg):
+                        self.connection.send("login_status|ok")
+                        # TODO: Add code here which moves the user correctly
+                    else:
+                        # TODO: Add code here which displays a message to the user that their info was incorrect
 
                 elif client_option == "register":
                     msg = self.connection.recv(1024)

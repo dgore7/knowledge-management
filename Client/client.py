@@ -5,6 +5,7 @@ import time
 
 import ssl
 import hashlib
+from . import client_c
 
 
 class Client:
@@ -13,10 +14,6 @@ class Client:
 
         # TODO: NEED TO ADD CODE TO IMPORT A PUB KEY (or cert) WHICH WE WILL PUT IN THE CLIENT FILES AHEAD OF TIME!
 
-
-        host = 'localhost'
-        port = 8001
-
         #self.sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         #self.sock.connect((host,port))
         self.connect()
@@ -24,19 +21,20 @@ class Client:
         #message = "query:" + sys.stdin.readline()
         #self.sock.send(message.encode())
 
-    def connect(self, host='localhost', port=8001, use_ssl=True):
+    def connect(self, host='localhost', port=8001):
         #parameter: host -> The desired host for the new connection.
         #parameter: port -> The desired port for the new connection.
         #parameter: use_ssl -> Can be set to False to disable SSL for the client connecting
 
         # Code to get the server's cert
+        # We need this to verify it (the cert is its own root)
         #cert = conn.getpeercert()
-        #If it's self signed, I dont think we need a CA cert to verify?
 
         if not self.connected:
             context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)  # Defaults to SSL/TLS support
             context.verify_mode = ssl.CERT_REQUIRED # ssl.CERT_REQUIRED is more secure
             context.check_hostname = True  # Hostname verification on certs (Dont want for now)
+            context.load_default_certs() # Load the default certificates in case the server is not using a self-signed key
             context.load_verify_locations(cafile='/Users/jsmith/Documents/CSC376/keyfiles/KnowledgeManagement.crt')
             self.sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
             self.sock = context.wrap_socket(self.sock, server_side = False,server_hostname='lpc-depaulsecure-219-223.depaulsecure-student.depaul.edu')
@@ -57,21 +55,23 @@ class Client:
             print("Nothing to disconnect!")
 
     def login(self, username, password):
-        self.sock.send( "login".encode() )
+        self.sock.send(client_c.client_api.login_code.encode())
 
-        login_info = username + ":" + password
+        login_info = username + "|" + password
         self.sock.send(login_info.encode())
-        if username and password:
-            # Add password hashing code in here (use username as salt?)
-            # Note that sha3_512 requires 3.6. sha512 is a less secure option
-            # to maintain compatibility with older platforms
-            #hashedPass = hashlib.sha3_512(password.encode()).hexdigest()
+        if self.sock.recv(1024).decode() == client_c.client_api.login_status_code + client_c.client_api.data_separator + client_c.client_api.login_status_good:
             return 1
         else:
             return 0
 
+        #if username and password:
+        #
+        #   return 1
+        #else:
+        #    return 0
+
     def register(self, username, password):
-        self.sock.send( "register".encode() )
+        self.sock.send(client_c.client_api.register_code)
 
         register_info = username + ":" + password
         self.sock.send(register_info.encode())
@@ -86,7 +86,7 @@ class Client:
             return 0
 
     def upload(self, filename, category, keywords):
-        self.sock.send( "upload".encode() )
+        self.sock.send(client_c.client_api.upload_code)
 
         msg= filename + ":" + category + ":" + keywords
 
@@ -109,7 +109,7 @@ class Client:
         print("Closing file")
 
     def retrieve(self, filename):
-        self.sock.send("retrieve".encode())
+        self.sock.send(client_c.client_api.retrieve_code)
 
         self.sock.send(filename.encode())
 
@@ -117,7 +117,7 @@ class Client:
 
     def search(self, filename):
 
-        self.sock.send("search".encode())
+        self.sock.send(client_c.client_api.search_code)
 
         #Maybe can use query statement here
         self.sock.send(filename.encode())
@@ -125,7 +125,7 @@ class Client:
 
     def delete(self, filename):
 
-        self.sock.send("delete".encode())
+        self.sock.send(client_c.client_api.delete_code)
         self.sock.send(filename.encode())
         print(filename)
 

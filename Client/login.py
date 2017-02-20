@@ -85,7 +85,6 @@ class LoginPage(tk.Frame):
 		"""
 		if( username and password):
 
-			#CODE NEEDED: Encrpty password
 			response = gui.getClient().login(username, password)
 
 			"""
