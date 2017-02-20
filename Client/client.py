@@ -27,11 +27,11 @@ class Client:
         login_info = username + ":" + password
         connection.send((login_info.encode()))
         #self.sock.send(login_info.encode())
+        connection.close()
         if username and password:
             return 1
         else:
             return 0
-        connection.close()
 
     def register(self, username, password):
         self.sock.send( "register".encode() )
@@ -56,17 +56,18 @@ class Client:
         msg= filename
 
         connection.send( msg.encode() )
-
+        status = connection.recv(64).decode()
+        if status[:7] == "FAILURE":
+            print(status[8:])
         try:
             file_stat = os.stat(filename)
             file_exist = True
         except FileNotFoundError:
             file_exist = False
 
-
         file = open(filename, "rb")
         for line in file:
-#            sys.stdout.write(line.decode())
+            # sys.stdout.write(line.decode())
             connection.send(line)
 
         file.close()
