@@ -6,24 +6,32 @@ import time
 
 class Client:
     def __init__(self):
+        print("Client Created")
+        
+
+    def connect(self):
         host = 'localhost'
         port = 8001
 
-        self.sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-        self.sock.connect((host,port))
+        sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+        sock.connect((host,port))
         print("Success")
-        #message = "query:" + sys.stdin.readline()
-        #self.sock.send(message.encode())
+        
+        return sock
+
 
     def login(self, username, password):
-        self.sock.send( "login".encode() )
+        connection = self.connect()
+        connection.send( "login".encode() )
 
         login_info = username + ":" + password
-        self.sock.send(login_info.encode())
+        connection.send((login_info.encode()))
+        #self.sock.send(login_info.encode())
         if username and password:
             return 1
         else:
             return 0
+        connection.close()
 
     def register(self, username, password):
         self.sock.send( "register".encode() )
@@ -37,11 +45,17 @@ class Client:
             return 0
 
     def upload(self, filename, category, keywords):
-        self.sock.send( "upload".encode() )
+        connection = self.connect()
+        
+        connection.send( "upload".encode() )
 
-        msg= filename + ":" + category + ":" + keywords
+        status_code = connection.recv(2)
+        if status_code.decode() != "OK":
+            print("failed")
+            return
+        msg= filename
 
-        self.sock.send( msg.encode() )
+        connection.send( msg.encode() )
 
         try:
             file_stat = os.stat(filename)
@@ -49,20 +63,21 @@ class Client:
         except FileNotFoundError:
             file_exist = False
 
-        file = open(filename)
+
+        file = open(filename, "rb")
         for line in file:
-            print(line.rstrip('\n'))
-            self.sock.send(line.encode())
+#            sys.stdout.write(line.decode())
+            connection.send(line)
 
         file.close()
-        time.sleep(0.37)
-        self.sock.send('0'.encode())
         print("Closing file")
+        connection.close()
 
     def retrieve(self, filename):
         self.sock.send("retrieve".encode())
 
         self.sock.send(filename.encode())
+
 
         print(filename)
 
@@ -82,3 +97,4 @@ class Client:
 
     def close_socket(self):
         self.sock.close()
+

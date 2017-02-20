@@ -13,18 +13,18 @@ def upload_file(connection, upload_info):
 
     filename = file_info[0]
 
-    file = open(filename, 'w')
+    file = open(filename, 'wb')
     print("\tOpened file: " + filename)
 
     while True:
         line = connection.recv(1024)
-        print("\tLine: " + line.decode())
+        print(line)
 
-        if line.decode() == '0':
+        if not len(line):
             # file.close()
             break
         else:
-            file.write(line.decode())
+            file.write(line)
 
     file.close()
     print("Closed File")
