@@ -102,10 +102,10 @@ class DB:
         :return:
         """
         try:
-            fileQuery = self.conn.execute("INSERT INTO FILE(filename,owner,timestamp) VALUES(?,?,?)",
+            fileQuery = self.conn.execute("INSERT INTO FILE(filename, owner, timestamp) VALUES(?,?,?)",
                                           (fileName, owner, time.time()))
             for tag in tags:
-                tagQuery = self.conn.execute("INSERT INTO TO TAG(tagname) VALUES(?) ON CONFLICT IGNORE", (tag))
+                tagQuery = self.conn.execute("INSERT OR IGNORE INTO TAG VALUES(?)", (tag))
                 tagNameQuery = self.conn.execute("INSERT INTO FILE_TAG(filename,tagname) VALUES(?,?)",
                                                  (fileName, tag))
             self.conn.commit()
@@ -134,6 +134,19 @@ class DB:
                 return True
             else:
                 return False
+
+
+    def __contains__(self, filename):
+        cursor = self.conn.cursor()
+        cursor.execute("""SELECT FILE.filename
+                          FROM FILE
+                          WHERE filename = ?
+                          """, (filename,))
+        return cursor.rowcount > 0
+
+
+
+
 
     def search (self, query):
         """

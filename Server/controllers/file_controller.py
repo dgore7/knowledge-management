@@ -1,3 +1,6 @@
+from . import db
+
+
 def upload_file(connection, upload_info):
     """
     upload a user's file to the database
@@ -12,6 +15,10 @@ def upload_file(connection, upload_info):
     file_info = upload_info.decode().split(":")
 
     filename = file_info[0]
+    if filename in db:
+        connection.send("FAILURE: file already exists".encode())
+    else:
+        connection.send("SUCCESS".encode())
 
     file = open(filename, 'wb')
     print("\tOpened file: " + filename)

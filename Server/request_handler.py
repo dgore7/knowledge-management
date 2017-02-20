@@ -1,5 +1,7 @@
 import threading
-import time
+from tkinter import filedialog
+from tkinter import *
+
 from Server import connections
 
 from Server.controllers import file_controller as f_ctrlr, user_controller as u_ctrlr
@@ -17,15 +19,17 @@ class RequestHandler(threading.Thread):
     def run(self):
         raw_request = self.connection.recv(2048)
         print(raw_request.decode())
-        if len(raw_request):
-            client_option = raw_request.decode()
-
-            if client_option == "login":
+        if raw_request == "login":
+                self.connection.send("OK".encode())
                 msg = self.connection.recv(1024)
                 print("Logging in with: " + msg.decode())
                 u_ctrlr.login_user(msg)
 
-            elif client_option == "register":
+        if len(raw_request):
+            client_option = raw_request.decode()
+            print("CO: " + client_option)
+
+            if client_option == "register":
                 msg = self.connection.recv(1024)
                 print("Registering user: " + msg.decode())
                 u_ctrlr.register_user(msg)

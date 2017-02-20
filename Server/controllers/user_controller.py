@@ -1,5 +1,6 @@
 def login_user(login_info):
     print("Inside login")
+    print("Extra line")
     print(login_info.decode())
     print("Leaving LoginHandler")
 

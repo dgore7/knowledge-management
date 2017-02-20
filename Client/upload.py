@@ -1,5 +1,7 @@
 import tkinter as tk
 
+from tkinter import filedialog
+from tkinter import *
 from tkinter import TOP, E
 
 import menu
@@ -85,11 +87,17 @@ class UploadPage(tk.Frame):
 									 command = lambda: self.back(gui))
 		backButton.grid(row=0, column=1)
 
+
+
 	def upload(self, gui, filename, category, keywords):
+
+		gui.filename =  filedialog.askopenfilename(initialdir = "/",title = "Select file" )
+		print (gui.filename)
+		self.filenameInput.insert(0, gui.filename)
 		response = gui.getClient().upload(filename, category, keywords)
-		self.filenameInput.delete(0, 'end')
-		self.categoryInput.delete(0, 'end')
-		self.keywordsInput.delete(0, 'end')
+		#self.filenameInput.delete(0, 'end')
+		#self.categoryInput.delete(0, 'end')
+		#self.keywordsInput.delete(0, 'end')
 
 	def back(self, gui):
 		#parameter: gui -> The GUI that is being used.
