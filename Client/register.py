@@ -75,8 +75,6 @@ class RegisterPage(tk.Frame):
 
 	def register(self, gui, username, password):
 		if( username and password ):
-
-			#CODE NEEDED: Encrypt Password
 			response = gui.getClient().register(username, password)
 
 			"""
@@ -90,6 +88,9 @@ class RegisterPage(tk.Frame):
 				tkinter.messagebox.showinfo("Warning", "Account already exist with that username. Please enter another one.")
 				self.usernameInput.delete(0, 'end')
 				self.passwordInput.delete(0, 'end')
+				# Clear these out since certain parameters are persistent objects?
+				username = ""
+				password = ""
 			else:
 				"""
 				Creates a new account.
@@ -99,6 +100,9 @@ class RegisterPage(tk.Frame):
 				print("Account created")
 				self.usernameInput.delete(0, 'end')
 				self.passwordInput.delete(0, 'end')
+				# Clear these out since certain parameters are persistent objects?
+				username = ""
+				password = ""
 				gui.show_frame(menu.MenuPage)
 
 		#Checks to see if client didn't enter a password.
