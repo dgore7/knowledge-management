@@ -6,6 +6,7 @@ import time
 import ssl
 import hashlib
 from . import client_c
+import codecs
 
 
 class Client:
@@ -20,6 +21,18 @@ class Client:
         print("Initialized")
         #message = "query:" + sys.stdin.readline()
         #self.sock.send(message.encode())
+        print("Client Created")
+        
+
+    def connect_insecure(self):
+        host = 'localhost'
+        port = 8001
+
+        sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+        sock.connect((host,port))
+        print("Success")
+        
+        return sock
 
     def connect(self, host='localhost', port=8001):
         #parameter: host -> The desired host for the new connection.
@@ -60,15 +73,27 @@ class Client:
         login_info = username + "|" + password
         self.sock.send(login_info.encode())
         if self.sock.recv(1024).decode() == client_c.client_api.login_status_code + client_c.client_api.data_separator + client_c.client_api.login_status_good:
+        connection = self.connect()
+        connection.send( "login".encode() )
+        print("Hello")
+        status_code = connection.recv(2)
+        print("MSG Replayed")
+
+        if status_code.decode != "OK":
+            print("Failled")
+            return
+
+        login_info = username + ":" + password
+
+        print (login_info)
+
+        connection.send(login_info.encode())
+        #self.sock.send(login_info.encode())
+        connection.close()
+        if username and password:
             return 1
         else:
             return 0
-
-        #if username and password:
-        #
-        #   return 1
-        #else:
-        #    return 0
 
     def register(self, username, password):
         self.sock.send(client_c.client_api.register_code)
@@ -87,31 +112,41 @@ class Client:
 
     def upload(self, filename, category, keywords):
         self.sock.send(client_c.client_api.upload_code)
+        connection = self.connect()
+        
+        connection.send( "upload".encode() )
 
-        msg= filename + ":" + category + ":" + keywords
+        status_code = connection.recv(2)
 
-        self.sock.send( msg.encode() )
+        if status_code.decode() != "OK":
+            print("failed")
+            return
+        msg= filename
 
+        connection.send( msg.encode() )
+        status = connection.recv(64).decode()
+        if status[:7] == "FAILURE":
+            print(status[8:])
         try:
             file_stat = os.stat(filename)
             file_exist = True
         except FileNotFoundError:
             file_exist = False
 
-        file = open(filename)
+        file = open(filename, "rb")
+        #file = codecs.open(filename, "rb", "utf-8")
         for line in file:
-            print(line.rstrip('\n'))
-            self.sock.send(line.encode())
+            connection.send(line)
 
         file.close()
-        time.sleep(0.37)
-        self.sock.send('0'.encode())
         print("Closing file")
+        connection.close()
 
     def retrieve(self, filename):
         self.sock.send(client_c.client_api.retrieve_code)
 
         self.sock.send(filename.encode())
+
 
         print(filename)
 
@@ -130,4 +165,6 @@ class Client:
         print(filename)
 
     def close_socket(self):
-        self.sock.close()
+        connection = self.connect()
+        connection.close()
+

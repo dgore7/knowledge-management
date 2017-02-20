@@ -13,6 +13,8 @@ def login_user(login_info):
 
 
     # Need to call DB functions here
+    print("Extra line")
+    print(login_info.decode())
     print("Leaving LoginHandler")
 
 def register_user(register_info):
