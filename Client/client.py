@@ -3,6 +3,8 @@ import socket
 import os
 import time
 
+import codecs
+
 
 class Client:
     def __init__(self):
@@ -23,9 +25,19 @@ class Client:
     def login(self, username, password):
         connection = self.connect()
         connection.send( "login".encode() )
+        print("Hello")
+        status_code = connection.recv(2)
+        print("MSG Replayed")
+
+        if status_code.decode != "OK":
+            print("Failled")
+            return
 
         login_info = username + ":" + password
-        connection.send((login_info.encode()))
+
+        print (login_info)
+
+        connection.send(login_info.encode())
         #self.sock.send(login_info.encode())
         if username and password:
             return 1
@@ -50,6 +62,7 @@ class Client:
         connection.send( "upload".encode() )
 
         status_code = connection.recv(2)
+
         if status_code.decode() != "OK":
             print("failed")
             return
@@ -65,8 +78,9 @@ class Client:
 
 
         file = open(filename, "rb")
+        #file = codecs.open(filename, "rb", "utf-8")
         for line in file:
-#            sys.stdout.write(line.decode())
+            #sys.stdout.write(line.decode())
             connection.send(line)
 
         file.close()
@@ -96,5 +110,6 @@ class Client:
         print(filename)
 
     def close_socket(self):
-        self.sock.close()
+        connection = self.connect()
+        connection.close()
 
