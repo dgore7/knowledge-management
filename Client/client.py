@@ -13,10 +13,6 @@ class Client:
 
         # TODO: NEED TO ADD CODE TO IMPORT A PUB KEY (or cert) WHICH WE WILL PUT IN THE CLIENT FILES AHEAD OF TIME!
 
-
-        host = 'localhost'
-        port = 8001
-
         #self.sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         #self.sock.connect((host,port))
         self.connect()
@@ -24,14 +20,14 @@ class Client:
         #message = "query:" + sys.stdin.readline()
         #self.sock.send(message.encode())
 
-    def connect(self, host='localhost', port=8001, use_ssl=True):
+    def connect(self, host='localhost', port=8001):
         #parameter: host -> The desired host for the new connection.
         #parameter: port -> The desired port for the new connection.
         #parameter: use_ssl -> Can be set to False to disable SSL for the client connecting
 
         # Code to get the server's cert
+        # We need this to verify it (the cert is its own root)
         #cert = conn.getpeercert()
-        #If it's self signed, I dont think we need a CA cert to verify?
 
         if not self.connected:
             context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)  # Defaults to SSL/TLS support
@@ -57,21 +53,23 @@ class Client:
             print("Nothing to disconnect!")
 
     def login(self, username, password):
-        self.sock.send( "login".encode() )
+        self.sock.send("login".encode())
 
         login_info = username + ":" + password
         self.sock.send(login_info.encode())
-        if username and password:
-            # Add password hashing code in here (use username as salt?)
-            # Note that sha3_512 requires 3.6. sha512 is a less secure option
-            # to maintain compatibility with older platforms
-            #hashedPass = hashlib.sha3_512(password.encode()).hexdigest()
+        if self.sock.recv(1024).decode() == "login_status|ok":
             return 1
         else:
             return 0
 
+        #if username and password:
+        #
+        #   return 1
+        #else:
+        #    return 0
+
     def register(self, username, password):
-        self.sock.send( "register".encode() )
+        self.sock.send("register".encode())
 
         register_info = username + ":" + password
         self.sock.send(register_info.encode())
@@ -86,7 +84,7 @@ class Client:
             return 0
 
     def upload(self, filename, category, keywords):
-        self.sock.send( "upload".encode() )
+        self.sock.send("upload".encode())
 
         msg= filename + ":" + category + ":" + keywords
 
