@@ -1,6 +1,3 @@
-# Mac meta files
-.DS_Store
-
 # Pycharm files
 .idea/
 .DS_Store/

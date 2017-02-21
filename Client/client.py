@@ -4,12 +4,16 @@ import os
 import time
 
 import codecs
+<<<<<<< HEAD
 import ssl
 import hashlib
+=======
+>>>>>>> dgore7/master
 
 
 class Client:
     def __init__(self):
+<<<<<<< HEAD
         self.connected = False
 
         # TODO: NEED TO ADD CODE TO IMPORT A PUB KEY (or cert) WHICH WE WILL PUT IN THE CLIENT FILES AHEAD OF TIME!
@@ -58,6 +62,20 @@ class Client:
         else:
             print("Nothing to disconnect!")
 
+=======
+        print("Client Created")
+
+    def connect(self):
+        host = 'localhost'
+        port = 8001
+
+        sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+        sock.connect((host,port))
+        print("Success")
+        
+        return sock
+
+>>>>>>> dgore7/master
     def login(self, username, password):
         connection = self.connect()
         connection.send( "login".encode() )
@@ -77,25 +95,18 @@ class Client:
         #self.sock.send(login_info.encode())
         connection.close()
         if username and password:
-            # Add password hashing code in here (use username as salt?)
-            # Note that sha3_512 requires 3.6. sha512 is a less secure option
-            # to maintain compatibility with older platforms
-            #hashedPass = hashlib.sha3_512(password.encode()).hexdigest()
             return 1
         else:
             return 0
 
     def register(self, username, password):
-        self.sock.send( "register".encode() )
+        sock = self.connect()
+        sock.send( "register".encode() )
 
         register_info = username + ":" + password
-        self.sock.send(register_info.encode())
+        sock.send(register_info.encode())
 
         if username and password:
-            # Add password hashing code in here (use username as salt?)
-            # Note that sha3_512 requires 3.6. sha512 is a less secure option
-            # to maintain compatibility with older platforms
-            #hashedPass = hashlib.sha3_512(password.encode()).hexdigest()
             return 1
         else:
             return 0
@@ -125,6 +136,10 @@ class Client:
         file = open(filename, "rb")
         #file = codecs.open(filename, "rb", "utf-8")
         for line in file:
+<<<<<<< HEAD
+=======
+            #sys.stdout.write(line.decode())
+>>>>>>> dgore7/master
             connection.send(line)
 
         file.close()
@@ -132,28 +147,28 @@ class Client:
         connection.close()
 
     def retrieve(self, filename):
-        self.sock.send("retrieve".encode())
+        sock = self.connect()
+        sock.send("retrieve".encode())
 
-        self.sock.send(filename.encode())
-
-
+        sock.send(filename.encode())
         print(filename)
+        sock.close()
 
     def search(self, filename):
-
-        self.sock.send("search".encode())
+        sock = self.connect()
+        sock.send("search".encode())
 
         #Maybe can use query statement here
-        self.sock.send(filename.encode())
+        sock.send(filename.encode())
         print(filename)
+        sock.close()
 
     def delete(self, filename):
-
-        self.sock.send("delete".encode())
-        self.sock.send(filename.encode())
+        sock = self.connect()
+        sock.send("delete".encode())
+        sock.send(filename.encode())
         print(filename)
+        sock.close()
 
-    def close_socket(self):
-        connection = self.connect()
-        connection.close()
+
 

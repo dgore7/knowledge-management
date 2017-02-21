@@ -1,7 +1,6 @@
-import hashlib
-
 def login_user(login_info):
     print("Inside login")
+<<<<<<< HEAD
 <<<<<<< HEAD
     print("Extra line")
     print(login_info.decode())
@@ -13,6 +12,10 @@ def login_user(login_info):
 
     # Need to call DB functions here
 >>>>>>> origin/feature/auth
+=======
+    print("Extra line")
+    print(login_info.decode())
+>>>>>>> dgore7/master
     print("Leaving LoginHandler")
 
 def register_user(register_info):
