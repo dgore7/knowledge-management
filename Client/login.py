@@ -99,9 +99,6 @@ class LoginPage(tk.Frame):
 				"""
 				self.usernameInput.delete(0, 'end')
 				self.passwordInput.delete(0, 'end')
-				# Clear these out since certain parameters are persistent objects?
-				username = ""
-				password = ""
 			else:
 				"""
 				Empties the textboxes.
@@ -109,9 +106,6 @@ class LoginPage(tk.Frame):
 				print("Login Successfully")
 				self.usernameInput.delete(0, 'end')
 				self.passwordInput.delete(0, 'end')
-				# Clear these out since certain parameters are persistent objects?
-				username = ""
-				password = ""
 				gui.show_frame(menu.MenuPage)
 
 		#Checks to see if client didn't enter a password.

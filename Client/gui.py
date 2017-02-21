@@ -1,3 +1,5 @@
+#from client import Client
+
 import tkinter as tk
 
 import start

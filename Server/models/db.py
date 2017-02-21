@@ -9,6 +9,7 @@
 
 import sqlite3
 import threading
+import time
 
 
 class DB:
@@ -22,11 +23,13 @@ class DB:
         # create the tables if not already in DB
         self.conn.execute('''CREATE TABLE IF NOT EXISTS USER
             (username   TEXT PRIMARY KEY  NOT NULL,
-            password    TEXT              NOT NULL);''')
+             password   TEXT              NOT NULL);''')
 
         self.conn.execute('''CREATE TABLE IF NOT EXISTS FILE
             (filename  TEXT PRIMARY KEY  NOT NULL,
-             timestamp  TEXT);''')
+             owner     TEXT,
+             timestamp TEXT,
+             FOREIGN KEY (owner) REFERENCES USER(username));''')
 
         self.conn.execute('''CREATE TABLE IF NOT EXISTS TAG
                     (tagname    TEXT PRIMARY KEY  NOT NULL
@@ -89,9 +92,25 @@ class DB:
             self.lock.release()
             return success
 
-    def upload(self, id, fileName, category, keywords):
-        pass
-        # KH -- EXCISED PER LICENSING RESTRICTION
+
+    def upload(self, fileName, tags, owner):  ## Written by Ayad
+        """
+        This method inserts data into the database
+        :param fileName:
+        :param tags:
+        :param owner:
+        :return:
+        """
+        try:
+            fileQuery = self.conn.execute("INSERT INTO FILE(filename, owner, timestamp) VALUES(?,?,?)",
+                                          (fileName, owner, time.time()))
+            for tag in tags:
+                tagQuery = self.conn.execute("INSERT OR IGNORE INTO TAG VALUES(?)", (tag))
+                tagNameQuery = self.conn.execute("INSERT INTO FILE_TAG(filename,tagname) VALUES(?,?)",
+                                                 (fileName, tag))
+            self.conn.commit()
+        except sqlite3.Error as e:
+            print("An Error Occured: " + e.args[0])
 
     def delete(self,fileName):
         """
@@ -115,6 +134,19 @@ class DB:
                 return True
             else:
                 return False
+
+
+    def __contains__(self, filename):
+        cursor = self.conn.cursor()
+        cursor.execute("""SELECT FILE.filename
+                          FROM FILE
+                          WHERE filename = ?
+                          """, (filename,))
+        return cursor.rowcount > 0
+
+
+
+
 
     def search (self, query):
         """
