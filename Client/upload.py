@@ -4,7 +4,7 @@ from tkinter import filedialog
 from tkinter import *
 from tkinter import TOP, E
 
-from . import menu
+from Client import menu
 
 
 class UploadPage(tk.Frame):
