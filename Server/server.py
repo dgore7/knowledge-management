@@ -61,9 +61,9 @@ def generate_server_self_cert(cert_dir):
         cert.set_pubkey(publicKey)
         cert.sign(publicKey, 'sha1') # SHA1 has known theoretical attack to produce collisions!
 
-        open(join(cert_dir, CERT_FILE), "wt").write(
+        open(join(cert_dir, CERT_FILE), "wb").write(
             crypto.dump_certificate(crypto.FILETYPE_PEM, cert))
-        open(join(cert_dir, KEY_FILE), "wt").write(
+        open(join(cert_dir, KEY_FILE), "wb").write(
             crypto.dump_privatekey(crypto.FILETYPE_PEM, publicKey))
 
     else:
