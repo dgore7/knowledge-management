@@ -16,12 +16,13 @@ class Client:
 
         # self.sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         # self.sock.connect((host,port))
+        # TODO: ALTER ROUTINES TO INSTEAD CONNECT USING A CONNECT BUTTON. THEN CERTS CAN BE SET BEFOREHAND!
         self.connect()
         print("Initialized")
         # message = "query:" + sys.stdin.readline()
         # self.sock.send(message.encode())
 
-    def connect(self, host='localhost', port=8001):
+    def connect(self, cert_file_path = '/Users/jsmith/Documents/CSC376/keyfiles/KnowledgeManagement.crt', host='localhost', port=8001):
         # parameter: host -> The desired host for the new connection.
         # parameter: port -> The desired port for the new connection.
         # parameter: use_ssl -> Can be set to False to disable SSL for the client connecting
@@ -34,10 +35,11 @@ class Client:
             context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)  # Defaults to SSL/TLS support
             context.verify_mode = ssl.CERT_REQUIRED  # ssl.CERT_REQUIRED is more secure
             context.check_hostname = True  # Hostname verification on certs (Dont want for now)
-            context.load_verify_locations(cafile='/Users/jsmith/Documents/CSC376/keyfiles/KnowledgeManagement.crt')
+            # TODO: Alter the SSL location
+            context.load_verify_locations(cafile=cert_file_path)
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.sock = context.wrap_socket(self.sock, server_side=False,
-                                            server_hostname='lpc-depaulsecure-219-223.depaulsecure-student.depaul.edu')
+                                            server_hostname=socket.gethostname())
 
             # TODO: Add a try for the line below to handle certificate mismatch errors and others
             self.sock.connect((host, port))
