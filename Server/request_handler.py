@@ -3,6 +3,7 @@ from tkinter import filedialog
 from tkinter import *
 
 from Server import connections
+from socket import SHUT_RDWR, error as SocketError, errno as SocketErrno
 
 from Server.controllers import file_controller as f_ctrlr, user_controller as u_ctrlr
 
@@ -39,12 +40,17 @@ class RequestHandler(threading.Thread):
                 elif client_option == "register":
                     msg = self.connection.recv(1024)
                     print("Registering user: " + msg.decode())
-                    u_ctrlr.register_user(msg)
+                    if u_ctrlr.register_user(msg):
+                        self.connection.send("register_response|success")
+                        print("Successfully registered user: " + msg.decode())
+                    else:
+                        self.connection.send("register_response|failed")
+                        print("Failed to register user: " + msg.decode())
 
                 elif client_option == "upload":
                     self.connection.send("OK".encode())
                     msg = self.connection.recv(1024)
-                    print ("Received: " + msg.decode() )
+                    print("Received: " + msg.decode() )
                     f_ctrlr.upload_file(self.connection, msg)
 
                 elif client_option == "retrieve":
@@ -67,8 +73,13 @@ class RequestHandler(threading.Thread):
             else:
                 print("Empty request body")
                 connections.remove(self.connection)
-                self.connection.shutdown()
-                self.connection.close()
+                try:
+                    self.connection.shutdown(SHUT_RDWR)
+                    self.connection.close()
+                except OSError as e:
+                    if e.args[0] == 57:
+                        print("Connection was already closed!")
+
                 self.connected = False
                 print("Disconnected from the client!")
             #self.connection.close()
