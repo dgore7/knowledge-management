@@ -27,7 +27,7 @@ def server_shutdown(server):
 
     for c in connections:
         c.close()
-        
+
 
 if __name__ == '__main__':
     server = create_socket(sys.argv[1] if len(sys.argv) >= 2 else 8001)
