@@ -36,7 +36,6 @@ class Client:
         print (login_info)
 
         connection.send(login_info.encode())
-        #self.sock.send(login_info.encode())
         connection.close()
         if username and password:
             return 1
@@ -110,6 +109,3 @@ class Client:
         sock.send(filename.encode())
         print(filename)
         sock.close()
-
-
-

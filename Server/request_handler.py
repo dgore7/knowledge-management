@@ -15,7 +15,6 @@ class RequestHandler(threading.Thread):
         connections.append(self.connection)
         print("Connection made")
 
-
     def run(self):
         raw_request = self.connection.recv(2048)
         print(raw_request.decode())
