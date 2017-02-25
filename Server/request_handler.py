@@ -17,7 +17,6 @@ class RequestHandler(threading.Thread):
         self.connected = True
         print("Connection made")
 
-
     def run(self):
         while self.connected:
             raw_request = self.connection.recv(2048)
