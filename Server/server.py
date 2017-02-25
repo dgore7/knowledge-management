@@ -88,7 +88,7 @@ def server_shutdown(server):
 
 
 if __name__ == '__main__':
-    server = create_secure_socket("/Users/jsmith/Documents/CSC376/keyfiles/", 'localhost', 8001)
+    server = create_secure_socket("/Users/jasminefarley/Documents/CSC376/keyfiles/", 'localhost', 8001)
     #server = create_socket(sys.argv[1] if len(sys.argv) >= 2 else 8001)
     atexit.register(server_shutdown, server)
     server.listen(10)

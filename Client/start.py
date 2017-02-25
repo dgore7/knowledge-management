@@ -29,7 +29,7 @@ class StartPage(tk.Frame):
 		Creates and adds the login button.
 		Takes the client to the login page when clicked on.
 		"""
-		loginButton = tk.Button(bottom, text = "Login", 
+		loginButton = tk.Button(bottom, text = "Login",
 							command = lambda: gui.show_frame(login.LoginPage))
 		loginButton.pack(side = LEFT)
 
@@ -37,7 +37,7 @@ class StartPage(tk.Frame):
 		Creates and adds the register button.
 		Takes the client to the register page when clicked on.
 		"""
-		registerButton = tk.Button(bottom, text = "Register", 
+		registerButton = tk.Button(bottom, text = "Register",
 							command = lambda: gui.show_frame(register.RegisterPage))
 		registerButton.pack(side = LEFT)
 

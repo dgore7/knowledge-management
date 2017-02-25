@@ -24,7 +24,7 @@ class Client:
         # message = "query:" + sys.stdin.readline()
         # self.sock.send(message.encode())
 
-    def connect(self, cert_file_path='/Users/jsmith/Documents/CSC376/keyfiles/KnowledgeManagement.crt',
+    def connect(self, cert_file_path='/Users/jasminefarley/Documents/CSC376/keyfiles/KnowledgeManagement.crt',
                 host='localhost', port=8001):
         # parameter: host -> The desired host for the new connection.
         # parameter: port -> The desired port for the new connection.
