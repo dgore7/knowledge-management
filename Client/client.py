@@ -14,15 +14,15 @@ class Client:
         host = 'localhost'
         port = 8001
 
-        sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-        sock.connect((host,port))
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect((host, port))
         print("Success")
-        
+
         return sock
 
     def login(self, username, password):
         connection = self.connect()
-        connection.send( "login".encode() )
+        connection.send("login".encode())
         print("Hello")
         status_code = connection.recv(2)
         print("MSG Replayed")
@@ -33,7 +33,7 @@ class Client:
 
         login_info = username + ":" + password
 
-        print (login_info)
+        print(login_info)
 
         connection.send(login_info.encode())
         connection.close()
@@ -44,7 +44,7 @@ class Client:
 
     def register(self, username, password):
         sock = self.connect()
-        sock.send( "register".encode() )
+        sock.send("register".encode())
 
         register_info = username + ":" + password
         sock.send(register_info.encode())
@@ -56,17 +56,17 @@ class Client:
 
     def upload(self, filename, category, keywords):
         connection = self.connect()
-        
-        connection.send( "upload".encode() )
+
+        connection.send("upload".encode())
 
         status_code = connection.recv(2)
 
         if status_code.decode() != "OK":
             print("failed")
             return
-        msg= filename
+        msg = filename
 
-        connection.send( msg.encode() )
+        connection.send(msg.encode())
         status = connection.recv(64).decode()
         if status[:7] == "FAILURE":
             print(status[8:])
@@ -77,9 +77,9 @@ class Client:
             file_exist = False
 
         file = open(filename, "rb")
-        #file = codecs.open(filename, "rb", "utf-8")
+        # file = codecs.open(filename, "rb", "utf-8")
         for line in file:
-            #sys.stdout.write(line.decode())
+            # sys.stdout.write(line.decode())
             connection.send(line)
 
         file.close()
@@ -98,7 +98,7 @@ class Client:
         sock = self.connect()
         sock.send("search".encode())
 
-        #Maybe can use query statement here
+        # Maybe can use query statement here
         sock.send(filename.encode())
         print(filename)
         sock.close()

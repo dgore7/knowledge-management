@@ -11,7 +11,7 @@ import retrieve
 import search
 import delete
 
-from client import Client
+from Client.client import Client
 
 
 class GUI(tk.Tk):
@@ -78,6 +78,6 @@ class GUI(tk.Tk):
 if __name__ == '__main__':
 	user = Client()
 	app = GUI(user)
-	app.geometry("400x150")
+	app.geometry("500x500")
 	app.mainloop()
-	user.close_socket()
+	user.disconnect()
