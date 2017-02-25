@@ -1,7 +1,8 @@
 import sys
 import socket
+import atexit
 from request_handler import RequestHandler
-from server_globals import connections
+from Server import connections
 
 
 def create_socket(port, host='localhost'):
@@ -21,7 +22,15 @@ def server_loop(server):
         handler.start()
 
 
+def server_shutdown(server):
+    server.close()
+
+    for c in connections:
+        c.close()
+        
+
 if __name__ == '__main__':
     server = create_socket(sys.argv[1] if len(sys.argv) >= 2 else 8001)
+    atexit.register(server_shutdown, server)
     server.listen(10)
     server_loop(server)
