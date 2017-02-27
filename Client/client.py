@@ -151,6 +151,3 @@ class Client:
         connection.send(filename.encode())
         print(filename)
         #sock.close()
-
-
-

@@ -26,22 +26,36 @@ class DB:
              password   TEXT              NOT NULL);''')
 
         self.conn.execute('''CREATE TABLE IF NOT EXISTS FILE
-            (filename  TEXT PRIMARY KEY  NOT NULL,
-             owner     TEXT,
-             timestamp TEXT,
-             FOREIGN KEY (owner) REFERENCES USER(username));''')
+            (filename   TEXT NOT NULL,
+             owner      TEXT NOT NULL,
+             timestamp  TEXT,
+             permission INTEGER,
+             notes      TEXT,
+             group_id   INTEGER,
+             PRIMARY KEY (filename, owner),
+             FOREIGN KEY (owner)    REFERENCES USER(username),
+             FOREIGN KEY (group_id) REFERENCES GROUPS(id));''')
 
         self.conn.execute('''CREATE TABLE IF NOT EXISTS TAG
-                    (tagname    TEXT PRIMARY KEY  NOT NULL
-                     );''')
+            (tagname    TEXT PRIMARY KEY  NOT NULL);''')
+
+        self.conn.execute('''CREATE TABLE IF NOT EXISTS GROUPS
+            (id           INTEGER   PRIMARY KEY,
+             groupname    TEXT,
+             user_created BOOLEAN);''')
+
+        self.conn.execute('''CREATE TABLE IF NOT EXISTS USER_GROUP
+            (group_id     INTEGER,
+             username     TEXT,
+             FOREIGN KEY (group_id) REFERENCES GROUPS(id),
+             FOREIGN KEY (username) REFERENCES USER(username));''')
 
         self.conn.execute('''CREATE TABLE IF NOT EXISTS FILE_TAG
-                    (filename     TEXT,
-                     tagname      TEXT,
-                     FOREIGN KEY (filename) REFERENCES FILE(filename),
-                     FOREIGN KEY (tagname)  REFERENCES TAG(tagname),
-                     PRIMARY KEY (filename, tagname)
-                     );''')
+            (filename     TEXT,
+             tagname      TEXT,
+             FOREIGN KEY (filename) REFERENCES FILE(filename) ON DELETE CASCADE,
+             FOREIGN KEY (tagname)  REFERENCES TAG(tagname),
+             PRIMARY KEY (filename, tagname));''')
 
         self.conn.commit()
 
@@ -81,19 +95,21 @@ class DB:
         """
         self.lock.acquire()
         success = False
+        c = self.conn.cursor()
         try:
-            self.conn.execute("INSERT INTO USER(username, password) VALUES(?,?)", (username, pword))
+            c.execute("INSERT INTO USER(username, password) VALUES(?,?)", (username, pword))
+            c.execute("INSERT INTO GROUPS(group_name) VALUES(?,?)", (username + "_personal_repo", False))
+            c.execute("INSERT INTO USER_GROUP(group_id, username) VALUES(?,?)", (c.lastrowid))
             self.conn.commit()
             success = True
         # username is not unique
-        except sqlite3.IntegrityError:
-             pass
+        except Exception as e:
+             print(e)
         finally:
             self.lock.release()
             return success
 
-
-    def upload(self, fileName, tags, owner):  ## Written by Ayad
+    def upload(self, fileName, tags, owner, group_id):  ## Written by Ayad
         """
         This method inserts data into the database
         :param fileName:
@@ -112,7 +128,7 @@ class DB:
         except sqlite3.Error as e:
             print("An Error Occured: " + e.args[0])
 
-    def delete(self,fileName):
+    def delete(self, fileName, owner):
         """
         Attempts to delete fileName from the FILES table
 
@@ -124,7 +140,13 @@ class DB:
         self.lock.acquire()
         total_changes = self.conn.total_changes
         try:
-            cursor = self.conn.execute("DELETE FROM FILE WHERE filename=?",(fileName,))
+            cursor = self.conn.execute("""
+                                       DELETE FROM FILE WHERE filename=? AND ? IN
+                                       (SELECT owner FROM USER INNER JOIN
+                                        (FILE INNER JOIN FILE_PERMISSION
+                                         ON FILE.filename = FILE_PERMISSION.filename)
+                                        ON USER.username = FILE_PERMISSION.username);
+                                       """,(fileName, owner))
             self.conn.commit()
         except sqlite3.Error:
             return False
@@ -136,19 +158,15 @@ class DB:
                 return False
 
 
-    def __contains__(self, filename):
+    def __contains__(self, filename, owner):
         cursor = self.conn.cursor()
         cursor.execute("""SELECT FILE.filename
                           FROM FILE
-                          WHERE filename = ?
-                          """, (filename,))
+                          WHERE filename = ? AND owner = ?
+                          """, (filename, owner))
         return cursor.rowcount > 0
 
-
-
-
-
-    def search (self, query):
+    def search (self, query, owner):
         """
         Attempts to find all files matching the user's Query.
 
@@ -162,13 +180,14 @@ class DB:
         try:
             cursor = self.conn.cursor()
             if query['fname']:
-                cursor.execute("""SELECT FILE.filename, FILE.timestamp, TAG.tagname
-                                  FROM FILE INNER JOIN
-                                  (TAG INNER JOIN FILE_TAG
-                                  ON TAG.tagname = FILE_TAG.tagname)
-                                  ON FILE.filename = FILE_TAG.filename
-                                  WHERE FILE.filename LIKE ?
-                              """, ('%' + query['fname'] + '%',))
+                cursor.execute(
+                    """SELECT FILE.filename, FILE.timestamp, TAG.tagname
+                       FROM FILE INNER JOIN
+                       (TAG INNER JOIN FILE_TAG
+                       ON TAG.tagname = FILE_TAG.tagname)
+                       ON FILE.filename = FILE_TAG.filename
+                       WHERE FILE.filename LIKE ? AND FILE.owner = ?
+                    """, ('%' + query['fname'] + '%', owner))
                 results.update(row for row in cursor)
 
             if 'tags' in query:
@@ -184,20 +203,20 @@ class DB:
                                     (TAG INNER JOIN FILE_TAG
                                     ON TAG.tagname = FILE_TAG.tagname)
                                     ON FILE.filename = FILE_TAG.filename
-                                    WHERE TAG.tagname LIKE ?
-                                """, ('%' + tag + '%',))
+                                    WHERE TAG.tagname LIKE ? AND FILE.owner = ?
+                                """, ('%' + tag + '%', owner))
                     results.update(row for row in cursor if row not in results)
 
             if 'ext' in query:
                 if results:
                     results = {result for result in results if result[0].endswith(query['ext'])}
                 else:
-                    cursor.execute("SELECT * FROM FILE WHERE ?  ", '%' + query['ext'])
+                    cursor.execute("SELECT * FROM FILE WHERE filename LIKE ? and owner", ('%' + query['ext'], owner))
         except Exception:
             raise Exception
         return results
 
 if __name__ == '__main__':
     db = DB()
-    results = db.search({'fname': 'py', 'tags': ['tag1']})
+    results = db.search({'fname': 'py', 'tags': ['tag1']}, "owner")
     print(results)
