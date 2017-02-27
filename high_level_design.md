@@ -36,4 +36,20 @@
     * request documents
     * search documents/notes based on tags
 
+## Wireframes of End Goal (Subject to Change):
+
+### Login:
+
+![alt text](https://github.com/imthecritic/knowledge-management/master/login.png "Login Page")
+
+### Main Page:
+
+![alt text](https://github.com/imthecritic/knowledge-management/master/main_page.png "Login Page")
+
+###Inside Repo:
+
+![alt text](https://github.com/imthecritic/knowledge-management/master/inside_repo.png "Login Page")
+
+
+
 
