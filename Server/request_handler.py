@@ -3,6 +3,7 @@ from tkinter import filedialog
 from tkinter import *
 
 from Server import connections
+from socket import SHUT_RDWR, error as SocketError, errno as SocketErrno
 
 from Server.controllers import file_controller as f_ctrlr, user_controller as u_ctrlr
 
@@ -13,53 +14,75 @@ class RequestHandler(threading.Thread):
         threading.Thread.__init__(self)
         self.connection = connection
         connections.append(self.connection)
+        self.connected = True
         print("Connection made")
 
     def run(self):
-        raw_request = self.connection.recv(2048)
-        print(raw_request.decode())
-        if raw_request == "login":
-                self.connection.send("OK".encode())
-                msg = self.connection.recv(1024)
-                print("Logging in with: " + msg.decode())
-                u_ctrlr.login_user(msg)
+        while self.connected:
+            raw_request = self.connection.recv(2048)
+            print(raw_request.decode())
 
-        if len(raw_request):
-            client_option = raw_request.decode()
-            print("CO: " + client_option)
+            if len(raw_request):
+                client_option = raw_request.decode()
+                print("CO: " + client_option)
 
-            if client_option == "register":
-                msg = self.connection.recv(1024)
-                print("Registering user: " + msg.decode())
-                u_ctrlr.register_user(msg)
+                if client_option == "login":
+                    print("SENDING OK MESSAGE!")
+                    self.connection.send("OK".encode())
+                    msg = self.connection.recv(1024)
+                    print("Logging in with: " + msg.decode())
+                    if not u_ctrlr.login_user(msg):
+                        self.connection.send("login_response|bad".encode())
+                    else:
+                        self.connection.send("login_response|good".encode())
 
-            elif client_option == "upload":
-                self.connection.send("OK".encode())
-                msg = self.connection.recv(1024)
-                print ("Received: " + msg.decode() )
-                f_ctrlr.upload_file(self.connection, msg)
+                elif client_option == "register":
+                    msg = self.connection.recv(1024)
+                    print("Registering user: " + msg.decode())
+                    if u_ctrlr.register_user(msg):
+                        self.connection.send("register_response|success")
+                        print("Successfully registered user: " + msg.decode())
+                    else:
+                        self.connection.send("register_response|failed")
+                        print("Failed to register user: " + msg.decode())
 
-            elif client_option == "retrieve":
-                msg = self.connection.recv(1024)
-                print("Retrieving File: " + msg.decode())
-                f_ctrlr.retrieve_file(msg)
+                elif client_option == "upload":
+                    self.connection.send("OK".encode())
+                    msg = self.connection.recv(1024)
+                    print("Received: " + msg.decode() )
+                    f_ctrlr.upload_file(self.connection, msg)
 
-            elif client_option == "search":
-                msg = self.connection.recv(1024)
-                print("Searching for: " + msg.decode())
-                f_ctrlr.search_file(msg)
+                elif client_option == "retrieve":
+                    msg = self.connection.recv(1024)
+                    print("Retrieving File: " + msg.decode())
+                    f_ctrlr.retrieve_file(msg)
 
-            elif client_option == "delete":
-                msg = self.connection.recv(1024)
-                print("Deleting file: " + msg.decode())
-                f_ctrlr.delete_file(msg)
+                elif client_option == "search":
+                    msg = self.connection.recv(1024)
+                    print("Searching for: " + msg.decode())
+                    f_ctrlr.search_file(msg)
 
-        #request = self.parse_request(raw_request.decode())
-        #self.process_request(request)
-        else:
-            print("Empty request body")
-        self.connection.close()
-        connections.remove(self.connection)
+                elif client_option == "delete":
+                    msg = self.connection.recv(1024)
+                    print("Deleting file: " + msg.decode())
+                    f_ctrlr.delete_file(msg)
+
+            #request = self.parse_request(raw_request.decode())
+            #self.process_request(request)
+            else:
+                print("Empty request body")
+                connections.remove(self.connection)
+                try:
+                    self.connection.shutdown(SHUT_RDWR)
+                    self.connection.close()
+                except OSError as e:
+                    if e.args[0] == 57:
+                        print("Connection was already closed!")
+
+                self.connected = False
+                print("Disconnected from the client!")
+            #self.connection.close()
+            #connections.remove(self.connection)
 
     def process_request(self, request):
         if "query" not in request:
