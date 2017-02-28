@@ -77,9 +77,11 @@ class Client:
         print(login_info)
 
         connection.send(login_info.encode())
-        # self.sock.send(login_info.encode())
-        # connection.close()
-        server_response = connection.recv(19).decode().split("|")  # "login_response|bad" or "login_response|good"
+
+        #self.sock.send(login_info.encode())
+        #connection.close()
+        server_response = connection.recv(19).decode().split("|") #"login_response|bad" or "login_response|good"
+
         if server_response[0] == "login_response" and server_response[1] == "good":
             return 1
         else:
@@ -153,5 +155,5 @@ class Client:
         connection.send("delete".encode())
         connection.send(filename.encode())
         print(filename)
-        # sock.close()
 
+        #sock.close()

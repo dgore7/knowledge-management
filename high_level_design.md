@@ -44,11 +44,11 @@
 
 ### Main Page:
 
-![alt text](https://github.com/imthecritic/knowledge-management/blob/master/main_page.png "Login Page")
+![alt text](https://github.com/imthecritic/knowledge-management/blob/master/main_page.png "Main Page")
 
 ###Inside Repo:
 
-![alt text](https://github.com/imthecritic/knowledge-management/blob/master/inside_repo.png "Login Page")
+![alt text](https://github.com/imthecritic/knowledge-management/blob/master/inside_repo.png "Repo Page")
 
 
 

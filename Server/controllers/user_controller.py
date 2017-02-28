@@ -12,6 +12,7 @@ def login_user(login_info):
         return False
 
 
+
 def register_user(register_info):
     print("Inside RegisterHandler")
     client_information = parse_client_information(register_info)

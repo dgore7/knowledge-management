@@ -6,6 +6,7 @@ from tkinter import TOP, E
 
 from Client import menu
 
+
 class UploadPage(tk.Frame):
     def __init__(self, frame, gui):
         # parameter: frame
