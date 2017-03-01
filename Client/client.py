@@ -5,10 +5,11 @@ import time
 
 import pickle
 
-from . import SUCCESS, FAILURE
+from Client import client_c
 import codecs
 import ssl
 #import OpenSSL
+from socket import error as SocketError
 
 
 class Client:
@@ -53,9 +54,13 @@ class Client:
 
     def disconnect(self):
         if self.connected:
-            self.sock.shutdown(socket.SHUT_RDWR)
-            self.sock.close()
-            self.connected = False
+            try:
+                self.sock.shutdown(socket.SHUT_WR)
+                self.sock.close()
+                self.connected = False
+            except SocketError as e:
+                print("Server must have disconnected first!")
+
             print("Disconnection successful!")
         else:
             print("Nothing to disconnect!")
@@ -68,9 +73,9 @@ class Client:
         print("MSG Replayed")
         decoded_status_code = status_code.decode()
 
-        if decoded_status_code != SUCCESS:
-            print("Failled")
-            return
+        if decoded_status_code != client_c.SUCCESS:
+            print("Server failed to respond to login request!")
+            return -1
 
         login_info = "username:" + username + ";" + "password:" + password
 
@@ -80,7 +85,7 @@ class Client:
         #self.sock.send(login_info.encode())
         #connection.close()
         server_response = connection.recv(2).decode() # "login_response|bad" or "login_response|good"
-        if server_response == SUCCESS:
+        if server_response == client_c.SUCCESS:
             return 1
         else:
             return 0
@@ -94,7 +99,7 @@ class Client:
         register_info = "username:" + username + ";" + "password:" + password
         connection.send(register_info.encode())
         server_response = connection.recv().decode()
-        if server_response == SUCCESS:
+        if server_response == client_c.SUCCESS:
             return 1
         else:
             return 0
@@ -106,7 +111,7 @@ class Client:
 
         status_code = connection.recv(1024).decode()
 
-        if status_code != SUCCESS:
+        if status_code != client_c.SUCCESS:
             print("failed")
             return
         msg = ['filename:',filename, ';']
@@ -147,7 +152,7 @@ class Client:
             raise RuntimeError('Arguements required')
         connection.send("retrieve repo".encode())
         result = connection.recv(1024).decode()
-        if not result == SUCCESS:
+        if not result == client_c.SUCCESS:
             print(result)
             return []
         if group_id:
@@ -176,12 +181,12 @@ class Client:
     def delete(self, filename, group_id):
         connection = self.sock
         connection.send("delete".encode())
-        if not connection.recv(2).decode() == SUCCESS:
+        if not connection.recv(2).decode() == client_c.SUCCESS:
             return False
         msg = 'filename:' +  filename + ';group_id:' + group_id
         connection.send(msg.encode())
         result = connection.recv(1024).decode()
-        if result != SUCCESS:
+        if result != client_c.SUCCESS:
             print(result)
             return False
         return True

@@ -1,8 +1,8 @@
 import tkinter as tk
 from tkinter import LEFT, BOTTOM
 
-import login
-import register
+from Client import login
+from Client import register
 
 
 class StartPage(tk.Frame):

@@ -3,9 +3,9 @@ import tkinter as tk
 from tkinter import TOP, E
 import tkinter.messagebox
 
-import gui
-import start
-import menu
+from Client import gui
+from Client import start
+from Client import menu
 
 
 class LoginPage(tk.Frame):
@@ -91,7 +91,18 @@ class LoginPage(tk.Frame):
 			"""
 			Checks to see if the there is any problems with loginning.
 			"""
-			if(response == 0):
+			if (response == -1):
+				tkinter.messagebox.showinfo("Warning", "Server failed to respond!")
+
+				"""
+                Empties the textboxes to reenter information.
+                """
+				self.usernameInput.delete(0, 'end')
+				self.passwordInput.delete(0, 'end')
+				# Clear these out since certain parameters are persistent objects?
+				username = ""
+				password = ""
+			elif(response == 0):
 				tkinter.messagebox.showinfo("Warning", "Invalid login information.")
 
 				"""

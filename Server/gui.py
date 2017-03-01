@@ -1,28 +1,15 @@
-#from client import Client
-
 import tkinter as tk
 
-from Client import start
-from Client import login
-from Client import register
-from Client import menu
-from Client import upload
-from Client import retrieve
-from Client import search
-from Client import delete
-
-from Client import client
+from Server import server
+from Server import home_gui
+from Server import settings_gui
 
 
 class GUI(tk.Tk):
 	#Inherites tkinter class
-	def __init__(self, user):
+	def __init__(self):
 		#parameter: user -> A Client object
 
-		"""
-		Binds the GUI to a Client object. 
-		"""
-		self.user = user
 
 		"""
 		Initializes a tkinter object
@@ -32,7 +19,7 @@ class GUI(tk.Tk):
 		"""
 		Changes the title of the window
 		"""
-		tk.Tk.wm_title(self, "Knowledge Management")
+		tk.Tk.wm_title(self, "Knowledge Management Server Manager")
 
 		"""
 		Creates a tkinter Frame and packs it
@@ -49,11 +36,10 @@ class GUI(tk.Tk):
 		self.frames = {}
 
 		"""
-		Creates multiple frames using the window frame 
+		Creates multiple frames using the window frame 3
 		and stores each of them into the frames dictionary.
 		"""
-		for F in (start.StartPage, login.LoginPage, register.RegisterPage, menu.MenuPage,
-			upload.UploadPage, retrieve.RetrievePage, search.SearchPage, delete.DeletePage):
+		for F in (home_gui.HomePage, settings_gui.SettingsPage):
 			frame = F(window, self)
 			self.frames[F] = frame
 			frame.grid(row = 0, sticky = "nsew")
@@ -61,7 +47,7 @@ class GUI(tk.Tk):
 		"""
 		Displays the starting frame
 		"""
-		self.show_frame(start.StartPage)
+		self.show_frame(home_gui.HomePage)
 
 	def show_frame(self, display):
 		#parameter: display -> The frame that is too be display
@@ -72,12 +58,20 @@ class GUI(tk.Tk):
 		frame = self.frames[display]
 		frame.tkraise()
 
-	def getClient(self):
-		return self.user
+	def setServer(self, server):
+		"""
+			Binds the GUI to a Server object.
+		"""
+		self.server = server
+
+	def getServer(self):
+		return self.server
 
 if __name__ == '__main__':
-	user = client.Client()
-	app = GUI(user)
+	#server.start()
+	app = GUI()
 	app.geometry("400x150")
 	app.mainloop()
-	user.disconnect()
+	# Method to see if the server is currently running
+	#if self.server.is_listening():
+		#self.server.server_shutdown()

@@ -9,3 +9,7 @@ if __name__ == '__main__':
     message = "query:" + sys.stdin.readline()
     sock.send(message.encode())
     # sock.close()
+
+
+SUCCESS = "OK"
+FAILURE = "KO"

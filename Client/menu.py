@@ -2,11 +2,11 @@ import tkinter as tk
 
 from tkinter import TOP, RAISED
 
-import start
-import upload
-import retrieve
-import search
-import delete
+from Client import start
+from Client import upload
+from Client import retrieve
+from Client import search
+from Client import delete
 
 
 class MenuPage(tk.Frame):

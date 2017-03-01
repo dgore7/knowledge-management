@@ -6,10 +6,10 @@ def login_user(login_info):
     username = login_info['username']
     password = login_info['password']
     if db.login(username, password):
-        print("Leaving LoginHandler")
+        print("Leaving LoginHandler (True)")
         return True
     else:
-        print("Leaving LoginHandler")
+        print("Leaving LoginHandler (False)")
         return False
 
 
