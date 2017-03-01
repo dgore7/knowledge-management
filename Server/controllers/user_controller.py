@@ -3,8 +3,9 @@ from . import db
 
 def login_user(login_info):
     print("Inside login")
-    client_information = parse_client_information(login_info)
-    if db.login(client_information[0], client_information[1]):
+    username = login_info['username']
+    password = login_info['password']
+    if db.login(username, password):
         print("Leaving LoginHandler")
         return True
     else:
@@ -12,16 +13,9 @@ def login_user(login_info):
         return False
 
 
-
 def register_user(register_info):
     print("Inside RegisterHandler")
-    client_information = parse_client_information(register_info)
-
+    username = register_info['username']
+    password = register_info['password']
     print("Leaving RegisterHandler")
-
-
-def parse_client_information(client_info):
-    print("Parsed Client Info " + client_info.decode() +
-          " -> Username: " + client_info.decode().split(":")[0] +
-          " Password: " + client_info.decode().split(":")[1])
-    return client_info.decode().split(":")
+    return db.register(username, password)
