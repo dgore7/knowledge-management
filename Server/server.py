@@ -1,3 +1,4 @@
+import os
 import sys
 import socket
 import atexit
@@ -17,8 +18,9 @@ def create_socket(port, host='localhost'):
     print("Server started on {}:{}".format(host, port))
     return server
 
+
 def create_secure_socket(cert_dir, host='localhost', port=8001):
-    context = ssl.SSLContext(ssl.PROTOCOL_TLS) # Defaults to SSL/TLS support
+    context = ssl.SSLContext(protocol=ssl.PROTOCOL_TLSv1) # Defaults to SSL/TLS support
     context.verify_mode = ssl.CERT_OPTIONAL # ssl.CERT_REQUIRED is more secure
     context.check_hostname = False # Hostname verification on certs (Dont want for now)
     context.load_default_certs(purpose=ssl.Purpose.CLIENT_AUTH) # Load the public CA certs for the server socket (need CLIENT_AUTH param)
@@ -30,6 +32,7 @@ def create_secure_socket(cert_dir, host='localhost', port=8001):
     secureSocket.bind((host, port))
     print("SSL Server started on {}:{}".format(host, port))
     return secureSocket
+
 
 def generate_server_self_cert(cert_dir):
     #parameter: cert_dir -> The directory to store the certificates in.
@@ -70,7 +73,6 @@ def generate_server_self_cert(cert_dir):
         print("Certificate/Key already exist! A new pair will not be generated.")
 
 
-
 def server_loop(server):
     while True:
         sock, addr = server.accept()
@@ -82,14 +84,13 @@ def server_loop(server):
 
 def server_shutdown(server):
     server.close()
-
     for c in connections:
         c.close()
         
 
 if __name__ == '__main__':
-    server = create_secure_socket("/Users/jsmith/Documents/CSC376/keyfiles/", 'localhost', 8001)
-    #server = create_socket(sys.argv[1] if len(sys.argv) >= 2 else 8001)
+    server = create_secure_socket(os.path.normpath(os.path.join(os.getcwd(),'..')), 'localhost', 8001)
+    # server = create_socket(sys.argv[1] if len(sys.argv) >= 2 else 8001)
     atexit.register(server_shutdown, server)
     server.listen(10)
     server_loop(server)

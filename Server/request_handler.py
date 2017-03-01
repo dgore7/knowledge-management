@@ -1,11 +1,9 @@
 import threading
-from tkinter import filedialog
-from tkinter import *
-
 from Server import connections
 from socket import SHUT_RDWR, error as SocketError, errno as SocketErrno
 
-from Server.controllers import file_controller as f_ctrlr, user_controller as u_ctrlr
+from Server.controllers import SUCCESS, FAILURE, file_controller as f_ctrlr, user_controller as u_ctrlr
+
 
 
 class RequestHandler(threading.Thread):
@@ -28,28 +26,29 @@ class RequestHandler(threading.Thread):
 
                 if client_option == "login":
                     print("SENDING OK MESSAGE!")
-                    self.connection.send("OK".encode())
+                    self.connection.send(SUCCESS)
                     msg = self.connection.recv(1024)
+                    login_info = self.parse_request(msg)
                     print("Logging in with: " + msg.decode())
-                    if not u_ctrlr.login_user(msg):
-                        self.connection.send("login_response|bad".encode())
+                    if not u_ctrlr.login_user(login_info):
+                        self.connection.send(FAILURE)
                     else:
-                        self.connection.send("login_response|good".encode())
+                        self.connection.send(SUCCESS)
 
                 elif client_option == "register":
-                    msg = self.connection.recv(1024)
-                    print("Registering user: " + msg.decode())
-                    if u_ctrlr.register_user(msg):
-                        self.connection.send("register_response|success")
-                        print("Successfully registered user: " + msg.decode())
+                    msg = self.connection.recv(1024).decode()
+                    print("Registering user: " + msg)
+                    if u_ctrlr.register_user(self.parse_request(msg)):
+                        self.connection.send(SUCCESS)
+                        print("Successfully registered user: " + msg)
                     else:
-                        self.connection.send("register_response|failed")
-                        print("Failed to register user: " + msg.decode())
+                        self.connection.send(FAILURE)
+                        print("Failed to register user: " + msg)
 
                 elif client_option == "upload":
-                    self.connection.send("OK".encode())
-                    msg = self.connection.recv(1024)
-                    print("Received: " + msg.decode() )
+                    self.connection.send(SUCCESS)
+                    msg = self.connection.recv(1024).decode()
+                    print("Received: " + msg)
                     f_ctrlr.upload_file(self.connection, msg)
 
                 elif client_option == "retrieve":
@@ -57,15 +56,25 @@ class RequestHandler(threading.Thread):
                     print("Retrieving File: " + msg.decode())
                     f_ctrlr.retrieve_file(msg)
 
+                elif client_option == "retrieve_repo":
+                    self.connection.send(SUCCESS)
+                    msg = self.connection.recv(1024).decode()
+                    print("Retrieving File: " + msg)
+                    f_ctrlr.retrieve_file(self.parse_request(msg))
+
                 elif client_option == "search":
                     msg = self.connection.recv(1024)
                     print("Searching for: " + msg.decode())
                     f_ctrlr.search_file(msg)
 
                 elif client_option == "delete":
-                    msg = self.connection.recv(1024)
-                    print("Deleting file: " + msg.decode())
-                    f_ctrlr.delete_file(msg)
+                    self.connection.send(SUCCESS)
+                    msg = self.connection.recv(1024).decode()
+                    print("Deleting file: " + msg)
+                    f_ctrlr.delete_file(self.connection, self.parse_request(msg))
+
+                else:
+                    self.connection.send(FAILURE)
 
             #request = self.parse_request(raw_request.decode())
             #self.process_request(request)
