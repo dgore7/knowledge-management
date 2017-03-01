@@ -92,11 +92,3 @@ class Server:
         server.close()
         for c in connections:
             c.close()
-
-
-    if __name__ == '__main__':
-        server = create_secure_socket(os.path.normpath(os.path.join(os.getcwd(),'..')), 'localhost', 8001)
-        # server = create_socket(sys.argv[1] if len(sys.argv) >= 2 else 8001)
-        atexit.register(server_shutdown, server)
-        server.listen(10)
-        server_loop(server)
