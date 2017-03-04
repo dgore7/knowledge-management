@@ -3,6 +3,9 @@ import socket
 import os
 import time
 
+import pickle
+
+from . import SUCCESS, FAILURE
 import codecs
 import ssl
 
@@ -24,7 +27,7 @@ class Client:
         # message = "query:" + sys.stdin.readline()
         # self.sock.send(message.encode())
 
-    def connect(self, cert_file_path='/Users/jasminefarley/Documents/CSC376/keyfiles/KnowledgeManagement.crt',
+    def connect(self, cert_file_path=os.path.normpath(os.path.join(os.getcwd(), '../KnowledgeManagement.crt')),
                 host='localhost', port=8001):
         # parameter: host -> The desired host for the new connection.
         # parameter: port -> The desired port for the new connection.
@@ -68,21 +71,19 @@ class Client:
         print("MSG Replayed")
         decoded_status_code = status_code.decode()
 
-        if decoded_status_code != "OK":
+        if decoded_status_code != SUCCESS:
             print("Failled")
             return
 
-        login_info = username + ":" + password
+        login_info = "username:" + username + ";" + "password:" + password
 
         print(login_info)
 
         connection.send(login_info.encode())
-
-        #self.sock.send(login_info.encode())
-        #connection.close()
-        server_response = connection.recv(19).decode().split("|") #"login_response|bad" or "login_response|good"
-
-        if server_response[0] == "login_response" and server_response[1] == "good":
+        # self.sock.send(login_info.encode())
+        # connection.close()
+        server_response = connection.recv(2).decode()  # "login_response|bad" or "login_response|good"
+        if server_response == SUCCESS:
             return 1
         else:
             return 0
@@ -93,26 +94,28 @@ class Client:
         connection = self.sock
         connection.send("register".encode())
 
-        register_info = username + ":" + password
+        register_info = "username:" + username + ";" + "password:" + password
         connection.send(register_info.encode())
-
-        if username and password:
+        server_response = connection.recv().decode()
+        if server_response == SUCCESS:
             return 1
         else:
             return 0
 
-    def upload(self, filename, category, keywords):
+    def upload(self, filename, tags, notes):
         connection = self.sock
 
         connection.send("upload".encode())
 
-        status_code = connection.recv(2)
+        status_code = connection.recv(1024).decode()
 
-        if status_code.decode() != "OK":
+        if status_code != SUCCESS:
             print("failed")
             return
-        msg = filename
-
+        msg = ['filename:', filename, ';']
+        msg.extend(['notes:', notes, ';'])
+        msg.extend(['tags:'].extend(tag + ',' for tag in tags))
+        msg = ''.join(msg)
         connection.send(msg.encode())
         status = connection.recv(64).decode()
         if status[:7] == "FAILURE":
@@ -141,6 +144,29 @@ class Client:
         print(filename)
         # sock.close()
 
+    def retrieve_repo(self, group_id=None, username=None):
+        connection = self.sock
+        if not group_id and not username:
+            raise RuntimeError('Arguements required')
+        connection.send("retrieve repo".encode())
+        result = connection.recv(1024).decode()
+        if not result == SUCCESS:
+            print(result)
+            return []
+        if group_id:
+            connection.send(str(group_id).encode())
+        elif username:
+            connection.send(username.encode())
+        result = []
+        while True:
+            bytes_received = connection.recv(1024)
+            if bytes_received:
+                result.append(bytes_received)
+            else:
+                break
+        result = b''.join(result)
+        return pickle.loads(result)
+
     def search(self, filename):
         connection = self.sock
         connection.send("search".encode())
@@ -150,10 +176,16 @@ class Client:
         print(filename)
         # sock.close()
 
-    def delete(self, filename):
+    def delete(self, filename, group_id):
         connection = self.sock
         connection.send("delete".encode())
-        connection.send(filename.encode())
-        print(filename)
-
-        #sock.close()
+        if not connection.recv(2).decode() == SUCCESS:
+            return False
+        msg = 'filename:' + filename + ';group_id:' + group_id
+        connection.send(msg.encode())
+        result = connection.recv(1024).decode()
+        if result != SUCCESS:
+            print(result)
+            return False
+        return True
+        # sock.close()

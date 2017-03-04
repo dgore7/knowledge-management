@@ -1,4 +1,3 @@
-from time import sleep
 from unittest import TestCase
 from Server.models.db import DB
 
@@ -8,7 +7,7 @@ class TestDB(TestCase):
         '''
         utility method to reset environment
         '''
-        tables = ['FILE_TAG', 'USER_GROUP', 'GROUPS', 'TAG', 'FILE', 'USER']
+        tables = ['FILE', 'FILE_TAG', 'USER_GROUP', 'GROUPS', 'TAG', 'USER']
         c = self.db.conn.cursor()
         c.execute('PRAGMA FOREIGN_KEYS = OFF')
         try:
@@ -77,7 +76,7 @@ class TestDB(TestCase):
         cursor.execute('SELECT * FROM TAG')
         self.assertListEqual(cursor.fetchall(), [(tag,) for tag in tags])
         cursor.execute('SELECT * FROM FILE_TAG')
-        self.assertListEqual(cursor.fetchall(), [(fname, user[0], tag) for tag in tags])
+        self.assertListEqual(cursor.fetchall(), [(fname, user[2], tag) for tag in tags])
 
 
     def test_create_group(self):
@@ -101,3 +100,27 @@ class TestDB(TestCase):
 
     def test_delete_user_from_group(self):
         self.fail()
+
+    def test_get_personal_repo_id(self):
+        self.db.register(self.uname, self.pword)
+        self.assertEqual(self.db.get_personal_repo_id(self.uname), 1)
+
+    def test_retrieve_repo(self):
+        cursor = self.db.conn.cursor()
+        cursor.execute('SELECT * FROM USER')
+        user = cursor.fetchone()
+        print(user)
+        self.db.register(self.uname, self.pword)
+        cursor.execute('SELECT * FROM USER')
+        user = cursor.fetchone()
+        print(user)
+        fname = 'foo.txt'
+        tags = ['bar', 'baz']
+        self.db.upload(fname, tags, user[0], user[2])
+        fname2 = 'snake.py'
+        tags2 = ['boo', 'bla']
+        self.db.upload(fname2, tags2, user[0], user[2])
+        cursor.execute('SELECT * FROM FILE')
+        f1 , f2 = cursor.fetchall()
+        self.assertListEqual(self.db.retrieve_repo(user[2]),
+                             [f1 + tuple(tags), f2 + tuple(tags2[::-1])])

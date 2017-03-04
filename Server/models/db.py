@@ -15,7 +15,7 @@ import time
 class DB:
     def __init__(self):
         # establish a connection w/ the database (check_same_thread=False is possibly sketchy, needs more research)
-        self.conn = sqlite3.connect('database.db')
+        self.conn = sqlite3.connect('database.db', check_same_thread=False)
 
         # create a lock for syncronization
         self.lock = threading.Lock()
@@ -33,7 +33,7 @@ class DB:
              timestamp  TEXT,
              notes      TEXT,
              group_id   INTEGER,
-             PRIMARY KEY (filename, owner),
+             PRIMARY KEY (filename, group_id),
              FOREIGN KEY (owner)    REFERENCES USER(username),
              FOREIGN KEY (group_id) REFERENCES GROUPS(id));''')
 
@@ -53,9 +53,9 @@ class DB:
 
         self.conn.execute('''CREATE TABLE IF NOT EXISTS FILE_TAG
             (filename     TEXT,
-             owner        TEXT,
+             group_id     INTEGER,
              tagname      TEXT,
-             FOREIGN KEY (filename, owner) REFERENCES FILE(filename, owner) ON DELETE CASCADE,
+             FOREIGN KEY (filename, group_id) REFERENCES FILE(filename, group_id) ON DELETE CASCADE,
              FOREIGN KEY (tagname)  REFERENCES TAG(tagname) ON DELETE CASCADE ,
              PRIMARY KEY (filename, tagname));''')
 
@@ -149,6 +149,23 @@ class DB:
             print('Error in add_user_to_group', e)
         return cursor.rowcount == 1
 
+    def retrieve_repo(self, gid):
+        cursor = self.conn.cursor()
+        try:
+            cursor.execute("SELECT * FROM FILE WHERE group_id=?",
+                            (gid,))
+            files = cursor.fetchall()
+            result = []
+            print(files)
+            for file in files:
+                cursor.execute('SELECT tagname FROM FILE_TAG WHERE filename=? AND group_id=?',
+                               (file[0], file[4]))
+                result.append(file + tuple(tag[0] for tag in cursor.fetchall()))
+            return result
+
+        except sqlite3.Error as e:
+            print('Error in retrieve_repo', e)
+
     def upload(self, fileName, tags, owner, group_id):  # Written by Ayad
         """
         This method inserts data into the database
@@ -163,13 +180,16 @@ class DB:
             for tag in tags:
                 self.conn.execute("INSERT OR IGNORE INTO TAG VALUES(?)",
                                   (tag,))
-                self.conn.execute("INSERT INTO FILE_TAG(filename, owner, tagname) VALUES(?,?,?)",
-                                  (fileName, owner, tag))
+                self.conn.execute("INSERT INTO FILE_TAG(filename, group_id, tagname) VALUES(?,?,?)",
+                                  (fileName, group_id, tag))
             self.conn.commit()
         except sqlite3.Error as e:
             print("An Error Occured: " + e.args[0])
 
-    def delete(self, fname):
+    def get_personal_repo_id(self, uname):
+        return self.conn.execute('SELECT repo_id FROM USER WHERE username=?', (uname,)).fetchone()[0]
+
+    def delete(self, fname, gid):
         """
         Attempts to delete fileName from the FILES table
 
@@ -181,7 +201,7 @@ class DB:
         self.lock.acquire()
         cursor = self.conn.cursor()
         try:
-            cursor.execute('DELETE FROM FILE WHERE filename=?;', (fname,))
+            cursor.execute('DELETE FROM FILE WHERE filename=? AND group_id=?;', (fname, gid))
             self.conn.commit()
         except sqlite3.Error:
             return False
