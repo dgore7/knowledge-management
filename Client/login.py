@@ -3,10 +3,10 @@ import tkinter as tk
 from tkinter import TOP, E
 import tkinter.messagebox
 
-import gui
-import start
-import menu
-
+from Client import gui
+from Client import start
+from Client import menu
+from Client import auth_client
 
 class LoginPage(tk.Frame):
     def __init__(self, frame, gui):

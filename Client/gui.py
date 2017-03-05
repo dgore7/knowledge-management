@@ -2,14 +2,14 @@
 
 import tkinter as tk
 
-import start
-import login
-import register
-import menu
-import upload
-import retrieve
-import search
-import delete
+from Client import start
+from Client import login
+from Client import register
+from Client import menu
+from Client import upload
+from Client import retrieve
+from Client import search
+from Client import delete
 
 from Client.client import Client
 

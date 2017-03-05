@@ -5,9 +5,10 @@ import time
 
 import pickle
 
-from . import SUCCESS, FAILURE
 import codecs
 import ssl
+from Client import auth_client
+from Client.client_c import client_api
 
 
 # import OpenSSL
@@ -70,8 +71,7 @@ class Client:
         status_code = connection.recv(2)
         print("MSG Replayed")
         decoded_status_code = status_code.decode()
-
-        if decoded_status_code != SUCCESS:
+        if decoded_status_code != client_api.SUCCESS:
             print("Failled")
             return
 
@@ -83,7 +83,7 @@ class Client:
         # self.sock.send(login_info.encode())
         # connection.close()
         server_response = connection.recv(2).decode()  # "login_response|bad" or "login_response|good"
-        if server_response == SUCCESS:
+        if server_response == client_api.SUCCESS:
             return 1
         else:
             return 0
@@ -97,7 +97,7 @@ class Client:
         register_info = "username:" + username + ";" + "password:" + password
         connection.send(register_info.encode())
         server_response = connection.recv().decode()
-        if server_response == SUCCESS:
+        if server_response == client_api.SUCCESS:
             return 1
         else:
             return 0
@@ -109,7 +109,7 @@ class Client:
 
         status_code = connection.recv(1024).decode()
 
-        if status_code != SUCCESS:
+        if status_code != client_api.SUCCESS:
             print("failed")
             return
         msg = ['filename:', filename, ';']
@@ -179,13 +179,22 @@ class Client:
     def delete(self, filename, group_id):
         connection = self.sock
         connection.send("delete".encode())
-        if not connection.recv(2).decode() == SUCCESS:
+        if not connection.recv(2).decode() == client_api.SUCCESS:
             return False
         msg = 'filename:' + filename + ';group_id:' + group_id
         connection.send(msg.encode())
         result = connection.recv(1024).decode()
-        if result != SUCCESS:
+        if result != client_api.SUCCESS:
             print(result)
             return False
         return True
+        # sock.close()
+
+    if __name__ == '__main__':
+        print("enter a query:")
+        port = 8001 if len(sys.argv) != 2 else sys.argv[1]
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect(("localhost", int(port)))
+        message = "query:" + sys.stdin.readline()
+        sock.send(message.encode())
         # sock.close()
