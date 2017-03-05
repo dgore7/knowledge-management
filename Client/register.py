@@ -7,6 +7,8 @@ import gui
 import start
 import menu
 
+import re
+
 
 class RegisterPage(tk.Frame):
 	def __init__(self, frame, gui):
@@ -75,31 +77,92 @@ class RegisterPage(tk.Frame):
 
 	def register(self, gui, username, password):
 		if( username and password ):
-
-			#CODE NEEDED: Encrypt Password
-			response = gui.getClient().register(username, password)
-
-			"""
-			Checks to see if username is available.
-			"""
-			if(response == 0):
+			if (len(password) < 12):
+				"""
+                Displays a pop up if username is not available.
+                Clears both textboxes to enter new information.
+                """
+				tkinter.messagebox.showinfo("Warning", "Password must be at least 12 characters long!")
+				self.usernameInput.delete(0, 'end')
+				self.passwordInput.delete(0, 'end')
+				# Clear these out since certain parameters are persistent objects?
+				username = ""
+				password = ""
+			elif (re.search(r"\d", password) is None):
+				"""
+                Displays a pop up if username is not available.
+                Clears both textboxes to enter new information.
+                """
+				tkinter.messagebox.showinfo("Warning", "Password must contain a number!")
+				self.usernameInput.delete(0, 'end')
+				self.passwordInput.delete(0, 'end')
+				# Clear these out since certain parameters are persistent objects?
+				username = ""
+				password = ""
+			elif (re.search(r"[A-Z]", password) is None):
 				"""
 				Displays a pop up if username is not available.
 				Clears both textboxes to enter new information.
 				"""
-				tkinter.messagebox.showinfo("Warning", "Account already exist with that username. Please enter another one.")
+				tkinter.messagebox.showinfo("Warning", "Password must contain an uppercase letter!")
 				self.usernameInput.delete(0, 'end')
 				self.passwordInput.delete(0, 'end')
+				# Clear these out since certain parameters are persistent objects?
+				username = ""
+				password = ""
+			elif (re.search(r"[a-z]", password) is None):
+				"""
+				Displays a pop up if username is not available.
+				Clears both textboxes to enter new information.
+				"""
+				tkinter.messagebox.showinfo("Warning", "Password must contain a lowercase letter!")
+				self.usernameInput.delete(0, 'end')
+				self.passwordInput.delete(0, 'end')
+				# Clear these out since certain parameters are persistent objects?
+				username = ""
+				password = ""
+			elif (re.search(r"[!#$%&'()*+,-./]", password) is None):
+				"""
+				Displays a pop up if username is not available.
+				Clears both textboxes to enter new information.
+				"""
+				tkinter.messagebox.showinfo("Warning", "Password must contain a special character!")
+				self.usernameInput.delete(0, 'end')
+				self.passwordInput.delete(0, 'end')
+				# Clear these out since certain parameters are persistent objects?
+				username = ""
+				password = ""
 			else:
+				#CODE NEEDED: Encrypt Password
+				response = gui.getClient().register(username, password)
+
 				"""
-				Creates a new account.
-				Clears both textboxes.
-				Takes the user to the menu page. 
+				Checks to see if username is available.
 				"""
-				print("Account created")
-				self.usernameInput.delete(0, 'end')
-				self.passwordInput.delete(0, 'end')
-				gui.show_frame(menu.MenuPage)
+				if(response == 0):
+					"""
+					Displays a pop up if username is not available.
+					Clears both textboxes to enter new information.
+					"""
+					tkinter.messagebox.showinfo("Warning", "Account already exist with that username. Please enter another one.")
+					self.usernameInput.delete(0, 'end')
+					self.passwordInput.delete(0, 'end')
+					# Clear these out since certain parameters are persistent objects?
+					username = ""
+					password = ""
+				else:
+					"""
+					Creates a new account.
+					Clears both textboxes.
+					Takes the user to the menu page.
+					"""
+					print("Account created")
+					self.usernameInput.delete(0, 'end')
+					self.passwordInput.delete(0, 'end')
+					# Clear these out since certain parameters are persistent objects?
+					username = ""
+					password = ""
+					gui.show_frame(menu.MenuPage)
 
 		#Checks to see if client didn't enter a password.
 		elif(username):
