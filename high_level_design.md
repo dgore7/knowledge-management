@@ -38,18 +38,6 @@
 
 ## Wireframes of End Goal (Subject to Change):
 
-### Login:
-
-![alt text](https://github.com/imthecritic/knowledge-management/blob/master/login.png "Login Page")
-
-### Main Page:
-
-![alt text](https://github.com/imthecritic/knowledge-management/blob/master/main_page.png "Main Page")
-
-###Inside Repo:
-
-![alt text](https://github.com/imthecritic/knowledge-management/blob/master/inside_repo.png "Repo Page")
-
 
 
 
