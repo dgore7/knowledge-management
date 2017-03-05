@@ -62,6 +62,7 @@ class DB:
         self.conn.commit()
 
     def login(self, username, pword):
+
         """
         Attempts to find an entry in the USERS table with the given parameters
 
