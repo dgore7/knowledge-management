@@ -10,6 +10,8 @@ import upload
 import retrieve
 import search
 import delete
+import group
+import group_management
 
 from client import Client
 
@@ -39,7 +41,7 @@ class GUI(tk.Tk):
 		"""
 		window = tk.Frame(self)
 		window.pack(side="top", fill="both", expand="True")
-		window.grid_rowconfigure(0, weight=1)#Who gets prority
+		window.grid_rowconfigure(0, weight=1)
 
 		window.grid_columnconfigure(0, weight=1)
 
@@ -53,7 +55,8 @@ class GUI(tk.Tk):
 		and stores each of them into the frames dictionary.
 		"""
 		for F in (start.StartPage, login.LoginPage, register.RegisterPage, menu.MenuPage,
-			upload.UploadPage, retrieve.RetrievePage, search.SearchPage, delete.DeletePage):
+			upload.UploadPage, retrieve.RetrievePage, search.SearchPage, delete.DeletePage,
+		    group.GroupPage, group_management.GroupManagementPage):
 			frame = F(window, self)
 			self.frames[F] = frame
 			frame.grid(row = 0, sticky = "nsew")
@@ -78,6 +81,6 @@ class GUI(tk.Tk):
 if __name__ == '__main__':
 	user = Client()
 	app = GUI(user)
-	app.geometry("400x150")
+	app.geometry("600x500")
 	app.mainloop()
 	user.close_socket()

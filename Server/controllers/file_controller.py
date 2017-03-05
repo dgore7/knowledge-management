@@ -1,4 +1,5 @@
 from . import db
+import os
 
 
 def upload_file(connection, upload_info):
@@ -14,7 +15,10 @@ def upload_file(connection, upload_info):
 
     file_info = upload_info.decode().split(":")
 
-    filename = file_info[0]
+    path = file_info[0].split("/")
+    filename = path[-1]
+    tag = file_info[1]
+    comment = file_info[2]
     if filename in db:
         connection.send("FAILURE: file already exists".encode())
     else:
@@ -22,13 +26,27 @@ def upload_file(connection, upload_info):
 
     file = open(filename, 'wb')
     print("\tOpened file: " + filename)
+    print("\tTag Received: " + tag)
+    print("\tComment Received: " + comment)
+
+    date_time_info = connection.recv(1024)
+
+    print(date_time_info)
+
+    print("File receieved. Sending response.")
+
+    connection.send("SUCCESS".encode())
+
+    months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    file_metadata = date_time_info.decode().split("|")
+
+    month = months[int(file_metadata[1]) - 1]
+    print(file_metadata[0] + " " + month)
 
     while True:
         line = connection.recv(1024)
-        print(line)
 
         if not len(line):
-            # file.close()
             break
         else:
             file.write(line)
@@ -37,17 +55,29 @@ def upload_file(connection, upload_info):
     print("Closed File")
     print("Leaving Upload Handler")
 
-def retrieve_file(filename):
+def download_file(connection, filename):
     print("Inside RetrieveHandler")
     print(filename.decode())
+    file = open(filename, 'rb')
+
+    for line in file:
+        connection.send(line)
+
+    print("\tOpened file: " + filename.decode())
+
+    file.close()
     print("Leaving RetrieveHandler")
 
-def search_file(filename):
-    print("Inside SearchHandler")
-    print(filename.decode())
-    print("Leaving SearchHandler")
 
-def delete_file(filename):
+# def search_file(filename):
+#     print("Inside SearchHandler")
+#     print(filename.decode())
+#     print("Leaving SearchHandler")
+
+def delete_file(connection, filename):
     print("Inside DeleteHandler")
     print(filename.decode())
+    os.remove(filename.decode())
+    print("Successfully deleted file")
+    connection.send("SUCCESS".encode())
     print("Leaving DeleteHandler")

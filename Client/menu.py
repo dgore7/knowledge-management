@@ -7,6 +7,8 @@ import upload
 import retrieve
 import search
 import delete
+import group
+import group_management
 
 
 class MenuPage(tk.Frame):
@@ -43,9 +45,9 @@ class MenuPage(tk.Frame):
 		Creates and adds the retrieve button.
 		Takes the client to the retrieve page when clicked.
 		"""
-		retrieveButton = tk.Button(left, text = "Retrive File",
-								 command = lambda: gui.show_frame(retrieve.RetrievePage))
-		retrieveButton.pack()
+		# retrieveButton = tk.Button(left, text = "Retrive File",
+		# 						 command = lambda: gui.show_frame(retrieve.RetrievePage))
+		# retrieveButton.pack()
 
 		"""
 		Creates and adds the search button.
@@ -55,13 +57,20 @@ class MenuPage(tk.Frame):
 								 command = lambda: gui.show_frame(search.SearchPage))
 		searchButton.pack()
 
+		createGroupsButton = tk.Button(left, text = "Create Groups",
+								command = lambda : gui.show_frame(group.GroupPage))
+		createGroupsButton.pack()
+
 		"""
 		Creates and adds the delete button.
 		Takes the client to the delete page when clicked.
 		"""
-		deleteButton = tk.Button(right, text = "Delete File",
-								 command = lambda: gui.show_frame(delete.DeletePage))
-		deleteButton.pack()
+		# deleteButton = tk.Button(right, text = "Delete File",
+		# 						 command = lambda: gui.show_frame(delete.DeletePage))
+		# deleteButton.pack()
+		groupManagementButton = tk.Button(right, text = "Group Management",
+								command = lambda : gui.show_frame(group_management.GroupManagementPage))
+		groupManagementButton.pack()
 
 		"""
 		Creates and adds the quit button.
@@ -77,3 +86,7 @@ class MenuPage(tk.Frame):
 		logoutButton = tk.Button(right, text = "Log Out",
 								 command = lambda: gui.show_frame(start.StartPage))
 		logoutButton.pack(ipadx=6)
+
+	def update_and_search(self, gui):
+		gui.show_frame(search.SearchPage)
+		print("Hello")
