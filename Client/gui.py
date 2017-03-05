@@ -2,16 +2,16 @@
 
 import tkinter as tk
 
-import start
-import login
-import register
-import menu
-import upload
-import retrieve
-import search
-import delete
+from Client import start
+from Client import login
+from Client import register
+from Client import menu
+from Client import upload
+from Client import retrieve
+from Client import search
+from Client import delete
 
-from client import Client
+from Client.client import Client
 
 
 class GUI(tk.Tk):
@@ -40,17 +40,8 @@ class GUI(tk.Tk):
 		window = tk.Frame(self)
 		window.pack(side="top", fill="both", expand="True")
 		window.grid_rowconfigure(0, weight=1)#Who gets prority
+
 		window.grid_columnconfigure(0, weight=1)
-
-		menubar = tk.Menu(window)
-		filemenu = tk.Menu(menubar, tearoff=0)
-		filemenu.add_command(label="Save Settings", command = lambda: print("Hello"))
-		filemenu.add_separator()
-		filemenu.add_command(label = "Exit", command = quit)
-
-		menubar.add_cascade(label="File", menu = filemenu)
-
-		tk.Tk.config(self, menu=menubar)
 
 		"""
 		A dictionary of frames. Used to change display between windows.
@@ -87,5 +78,6 @@ class GUI(tk.Tk):
 if __name__ == '__main__':
 	user = Client()
 	app = GUI(user)
-	app.geometry("400x150")
+	app.geometry("500x500")
 	app.mainloop()
+	user.disconnect()

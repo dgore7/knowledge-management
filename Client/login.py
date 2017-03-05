@@ -3,133 +3,138 @@ import tkinter as tk
 from tkinter import TOP, E
 import tkinter.messagebox
 
-import gui
-import start
-import menu
-
+from Client import gui
+from Client import start
+from Client import menu
+from Client import auth_client
 
 class LoginPage(tk.Frame):
-	def __init__(self, frame, gui):
-		#parameter: frame -> The  frame that will be initalized
-		#parameter: gui -> The GUI object that is being used.
+    def __init__(self, frame, gui):
+        # parameter: frame -> The  frame that will be initalized
+        # parameter: gui -> The GUI object that is being used.
 
-		"""
+        """
 		Initializes the frame that was passed in.
 		"""
-		tk.Frame.__init__(self, frame)
+        tk.Frame.__init__(self, frame)
 
-		"""
+        """
 		Creates a label to display window name on the screen.
 		"""
-		label = tk.Label(self, text = "Login")
-		label.pack(side = TOP)
+        label = tk.Label(self, text="Login")
+        label.pack(side=TOP)
 
-		#Frame used for organization
-		top = tk.Frame(self)
-		top.pack(side=TOP)
+        # Frame used for organization
+        top = tk.Frame(self)
+        top.pack(side=TOP)
 
-		#Frame used for organization
-		bottom = tk.Frame(self)
-		bottom.pack(side=TOP)
+        # Frame used for organization
+        bottom = tk.Frame(self)
+        bottom.pack(side=TOP)
 
-		"""
+        """
 		Creates a label to display 'Username'
 		"""
-		self.usernameText = tk.Label(top, text = "Username")
-		self.usernameText.grid(row = 0, column = 0, sticky=E)
+        self.usernameText = tk.Label(top, text="Username")
+        self.usernameText.grid(row=0, column=0, sticky=E)
 
-		"""
+        """
 		Creates a Entry to display a textbox for the client to enter their username.
 		"""
-		self.usernameInput = tk.Entry(top)
-		self.usernameInput.grid(row = 0, column = 1, sticky=E)
+        self.usernameInput = tk.Entry(top)
+        self.usernameInput.grid(row=0, column=1, sticky=E)
 
-		"""
+        """
 		Creates a Label to display 'Password'
 		"""
-		self.passwordText = tk.Label(top, text = "Password")
-		self.passwordText.grid(row = 1, column = 0)
+        self.passwordText = tk.Label(top, text="Password")
+        self.passwordText.grid(row=1, column=0)
 
-		"""
+        """
 		Creates a Entry to display a textbox for the client to enter their password.
 		The text is hidden using '•'.
 		"""
-		self.passwordInput = tk.Entry(top, show='•')
-		self.passwordInput.grid(row =1, column = 1)
+        self.passwordInput = tk.Entry(top, show='•')
+        self.passwordInput.grid(row=1, column=1)
 
-		"""
+        """
 		Creates and adds the sign in button.
 		Checks if the information provided is valid.
 		If valid, takes the client to menu page.
 		If not valid, prevents the client from entering.
 		"""
-		signInButton = tk.Button(bottom, text = "Sign-In",
-								 command = lambda: self.login(gui, self.usernameInput.get(), self.passwordInput.get()))
-		signInButton.grid(row=0)
+        signInButton = tk.Button(bottom, text="Sign-In",
+                                 command=lambda: self.login(gui, self.usernameInput.get(), self.passwordInput.get()))
+        signInButton.grid(row=0)
 
-		"""
+        """
 		Creates and adds the back button.
 		Takes the client back to the starting page when clicked.
 		"""
-		backButton = tk.Button(bottom, text = "Back", command = lambda: self.back(gui))
-		backButton.grid(row=0,column=1)
+        backButton = tk.Button(bottom, text="Back", command=lambda: self.back(gui))
+        backButton.grid(row=0, column=1)
 
-	def login(self, gui, username, password):
-		#parameter: gui -> The GUI that is being used.
-		#parameter: username -> The username the client provided.
-		#parameter: password -> The password the client provided.
+    def login(self, gui, username, password):
+        # parameter: gui -> The GUI that is being used.
+        # parameter: username -> The username the client provided.
+        # parameter: password -> The password the client provided.
 
-		"""
+        """
 		Checks to see if client entered information for both 
 		the username and password fields.
 		"""
-		if( username and password):
+        if (username and password):
 
-			#CODE NEEDED: Encrpty password
-			response = gui.getClient().login(username, password)
+            response = gui.getClient().login(username, password)
 
-			"""
+            """
 			Checks to see if the there is any problems with loginning.
 			"""
-			if(response == 0):
-				tkinter.messagebox.showinfo("Warning", "Invalid login information.")
+            if (response == 0):
+                tkinter.messagebox.showinfo("Warning", "Invalid login information.")
 
-				"""
+                """
 				Empties the textboxes to reenter information.
 				"""
-				self.usernameInput.delete(0, 'end')
-				self.passwordInput.delete(0, 'end')
-			else:
-				"""
+                self.usernameInput.delete(0, 'end')
+                self.passwordInput.delete(0, 'end')
+                # Clear these out since certain parameters are persistent objects?
+                username = ""
+                password = ""
+            else:
+                """
 				Empties the textboxes.
 				"""
-				print("Login Successfully")
-				self.usernameInput.delete(0, 'end')
-				self.passwordInput.delete(0, 'end')
-				gui.show_frame(menu.MenuPage)
+                print("Login Successfully")
+                self.usernameInput.delete(0, 'end')
+                self.passwordInput.delete(0, 'end')
+                # Clear these out since certain parameters are persistent objects?
+                username = ""
+                password = ""
+                gui.show_frame(menu.MenuPage)
 
-		#Checks to see if client didn't enter a password.
-		elif username:
-			tkinter.messagebox.showinfo("Warning", "Please enter a password.")
+        # Checks to see if client didn't enter a password.
+        elif username:
+            tkinter.messagebox.showinfo("Warning", "Please enter a password.")
 
-		#Checks to see if client didn't enter a username.
-		elif(password):
-			tkinter.messagebox.showinfo("Warning", "Please enter a username.")
+        # Checks to see if client didn't enter a username.
+        elif (password):
+            tkinter.messagebox.showinfo("Warning", "Please enter a username.")
 
-		#Checks to see if client didn't any login information.
-		else:
-			tkinter.messagebox.showinfo("Warning", "Please enter a username and password.")
+        # Checks to see if client didn't any login information.
+        else:
+            tkinter.messagebox.showinfo("Warning", "Please enter a username and password.")
 
-	def back(self, gui):
-		#parameter: gui -> The GUI that is being used.
+    def back(self, gui):
+        # parameter: gui -> The GUI that is being used.
 
-		"""
+        """
 		Empties the textboxes before heading back to the starting page.
 		"""
-		self.usernameInput.delete(0, 'end')
-		self.passwordInput.delete(0, 'end')
+        self.usernameInput.delete(0, 'end')
+        self.passwordInput.delete(0, 'end')
 
-		"""
+        """
 		Goes back to starting page.
 		"""
-		gui.show_frame(start.StartPage)
+        gui.show_frame(start.StartPage)
