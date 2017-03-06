@@ -11,6 +11,7 @@ import codecs
 import ssl
 # from Client import auth_client
 from Client.client_c import client_api
+from Client import g_personal_repoid, SOCKET_EOF
 
 
 # import OpenSSL
@@ -86,8 +87,7 @@ class Client:
         server_response = connection.recv(2)  # "login_response|bad" or "login_response|good"
         print(server_response.decode())
         if server_response == client_api.SUCCESS:
-            repo_id = connection.recv(32).decode()
-
+            g_personal_repoid = connection.recv(32).decode()
             return 1
         else:
             return 0
@@ -182,85 +182,79 @@ class Client:
         if status_code != client_api.SUCCESS:
             print("failed")
             return
-        msg = ['fname:', filename, ';']
+        msg = ['fname:', filename.split('/')[-1], ';']
         msg.extend(['notes:', notes, ';'])
         print(tags)
+        msg.extend(['gid:', repo, ';'])
         tags_buffer = ['tags:']
         tags_buffer.extend(tag + ',' for tag in tags)
+        if tags:
+            tags_buffer[-1] = tags_buffer[-1][:-1]
         msg.extend(tags_buffer)
-        msg.extend(rep)
         msg = ''.join(msg)
         connection.send(msg.encode())
-        status = connection.recv(64).decode()
-        if status[:7] == "FAILURE":
-            print(status[8:])
-        try:
-            file_stat = os.stat(filename)
-            file_exist = True
-        except FileNotFoundError:
-            file_exist = False
+        status = connection.recv(2)
+        if status != client_api.SUCCESS:
+            print('ERROR')
+            return
+        # try:
+        #     file_stat = os.stat(filename)
+        #     file_exist = True
+        # except FileNotFoundError:
+        #     file_exist = False
+        #
+        # #print("Recent Access: " + str(time.gmtime(file_stat.st_atime)))
+        # #print("Year: " + str(time_date[0]))
+        # #print("Month: " + str(time_date[1]))
+        # #print("Day: " + str(time_date[2]))
+        # #print("Hour: " + str(time_date[3]))
+        # #print("Minute: " + str(time_date[4]))
+        # #print("Second: " + str(time_date[5]))
+        # #print("Week Day: " + str(time_date[6]))
+        # #print("Year Day: " + str(time_date[7]))
+        #
+        # print("Recent Modification: " + str(file_stat.st_mtime))
+        # time_date2 = time.gmtime(file_stat.st_mtime)
+        # print("Year: " + str(time_date2[0]))
+        # print("Month: " + str(time_date2[1]))
+        # print("Day: " + str(time_date2[2]))
+        # print("Hour: " + str(time_date2[3]))
+        # print("Minute: " + str(time_date2[4]))
+        # print("Second: " + str(time_date2[5]))
+        # print("Week Day: " + str(time_date2[6]))
+        # print("Year Day: " + str(time_date2[7]))
+        #
+        # print("Recent Metadata Change: " + str(file_stat.st_ctime))
+        #
+        # print("ID Owner: " + str(file_stat.st_uid))
+        # print("Group ID Owner: " + str(file_stat.st_gid))
 
-        #print("Recent Access: " + str(time.gmtime(file_stat.st_atime)))
-        #print("Year: " + str(time_date[0]))
-        #print("Month: " + str(time_date[1]))
-        #print("Day: " + str(time_date[2]))
-        #print("Hour: " + str(time_date[3]))
-        #print("Minute: " + str(time_date[4]))
-        #print("Second: " + str(time_date[5]))
-        #print("Week Day: " + str(time_date[6]))
-        #print("Year Day: " + str(time_date[7]))
 
-        print("Recent Modification: " + str(file_stat.st_mtime))
-        time_date2 = time.gmtime(file_stat.st_mtime)
-        print("Year: " + str(time_date2[0]))
-        print("Month: " + str(time_date2[1]))
-        print("Day: " + str(time_date2[2]))
-        print("Hour: " + str(time_date2[3]))
-        print("Minute: " + str(time_date2[4]))
-        print("Second: " + str(time_date2[5]))
-        print("Week Day: " + str(time_date2[6]))
-        print("Year Day: " + str(time_date2[7]))
-
-        print("Recent Metadata Change: " + str(file_stat.st_ctime))
-
-        print("ID Owner: " + str(file_stat.st_uid))
-        print("Group ID Owner: " + str(file_stat.st_gid))
-
+        # #file = codecs.open(filename, "rb", "utf-8")
+        #
+        # print("Sending info")
+        #
+        # date_time = time.gmtime(file_stat.st_atime)
+        # file_date_info = str(date_time[0]) + \
+        #                      "|" + str(date_time[1]) + \
+        #                      "|" + str(date_time[2]) + \
+        #                      "|" + str(date_time[3]) + \
+        #                      "|" + repo
+        #
+        # connection.send(file_date_info.encode())
+        #
+        # status_code = connection.recv(7)
 
         file = open(filename,"rb")
-        #file = codecs.open(filename, "rb", "utf-8")
-
-        print("Sending info")
-
-        date_time = time.gmtime(file_stat.st_atime)
-        file_date_info = str(date_time[0]) + \
-                             "|" + str(date_time[1]) + \
-                             "|" + str(date_time[2]) + \
-                             "|" + str(date_time[3]) + \
-                             "|" + repo
-
-        connection.send(file_date_info.encode())
-
-        status_code = connection.recv(7)
-
-        if status_code.decode() != "SUCCESS":
-            print("failed")
-            return
 
         for line in file:
-
             print(line)
-            #sys.stdout.write(line.decode())
-            # sys.stdout.write(line.decode())
-
-            #sys.stdout.write(line.decode())
             connection.send(line)
-
+        connection.send(SOCKET_EOF)
         file.close()
         print("Closing file")
         # connection.close()
 
-        return "SUCCESS"
 
     def download(self, filename):
         connection = self.connect()

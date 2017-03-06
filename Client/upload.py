@@ -5,7 +5,7 @@ from tkinter import *
 from tkinter import TOP, E
 import tkinter.messagebox
 
-from Client import menu
+from Client import menu, g_personal_repoid
 
 
 class UploadPage(tk.Frame):
@@ -133,9 +133,9 @@ class UploadPage(tk.Frame):
 
 		elif filename and tag and comment:
 			if self.file_path:
-				response = gui.getClient().upload(self.file_path, [tag], comment, self.repo_destination.get())
+				response = gui.getClient().upload(self.file_path, [tag], comment, g_personal_repoid)
 			else:
-				response = gui.getClient().upload(filename, tag, comment, self.repo_destination.get())
+				response = gui.getClient().upload(filename, tag, comment, g_personal_repoid)
 
 			if response == "FILE NOT FOUND":
 				tkinter.messagebox.showinfo("Warning", "File " + filename + " was not found. The file was not uploaded")
