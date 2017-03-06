@@ -19,20 +19,21 @@ class DB:
 
         # create a lock for syncronization
         self.lock = threading.Lock()
-
+        self.conn.execute('PRAGMA FOREIGN_KEYS = ON')
         # create the tables if not already in DB
         self.conn.execute('''CREATE TABLE IF NOT EXISTS USER
             (username   TEXT PRIMARY KEY  NOT NULL,
-             password   TEXT              NOT NULL);''')
+             password   TEXT              NOT NULL,
+             repo_id    INTEGER           NOT NULL,
+             FOREIGN KEY (repo_id) REFERENCES GROUPS(id));''')
 
         self.conn.execute('''CREATE TABLE IF NOT EXISTS FILE
             (filename   TEXT NOT NULL,
              owner      TEXT NOT NULL,
              timestamp  TEXT,
-             permission INTEGER,
              notes      TEXT,
              group_id   INTEGER,
-             PRIMARY KEY (filename, owner),
+             PRIMARY KEY (filename, group_id),
              FOREIGN KEY (owner)    REFERENCES USER(username),
              FOREIGN KEY (group_id) REFERENCES GROUPS(id));''')
 
@@ -47,14 +48,15 @@ class DB:
         self.conn.execute('''CREATE TABLE IF NOT EXISTS USER_GROUP
             (group_id     INTEGER,
              username     TEXT,
-             FOREIGN KEY (group_id) REFERENCES GROUPS(id),
-             FOREIGN KEY (username) REFERENCES USER(username));''')
+             FOREIGN KEY (group_id) REFERENCES GROUPS(id) ON DELETE CASCADE,
+             FOREIGN KEY (username) REFERENCES USER(username) ON DELETE CASCADE);''')
 
         self.conn.execute('''CREATE TABLE IF NOT EXISTS FILE_TAG
             (filename     TEXT,
+             group_id     INTEGER,
              tagname      TEXT,
-             FOREIGN KEY (filename) REFERENCES FILE(filename) ON DELETE CASCADE,
-             FOREIGN KEY (tagname)  REFERENCES TAG(tagname),
+             FOREIGN KEY (filename, group_id) REFERENCES FILE(filename, group_id) ON DELETE CASCADE,
+             FOREIGN KEY (tagname)  REFERENCES TAG(tagname) ON DELETE CASCADE ,
              PRIMARY KEY (filename, tagname));''')
 
         self.conn.commit()
@@ -70,7 +72,8 @@ class DB:
                  True if username exists and enters correct password
         """
 
-        cursor = self.conn.execute("SELECT * FROM USER WHERE username == ? AND password == ?", (username, pword))
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT * FROM USER WHERE username == ? AND password == ?", (username, pword))
 
         # user will either be the one result, or 'None'
         user = cursor.fetchone()
@@ -97,19 +100,73 @@ class DB:
         success = False
         c = self.conn.cursor()
         try:
-            c.execute("INSERT INTO USER(username, password) VALUES(?,?)", (username, pword))
-            c.execute("INSERT INTO GROUPS(group_name) VALUES(?,?)", (username + "_personal_repo", False))
-            c.execute("INSERT INTO USER_GROUP(group_id, username) VALUES(?,?)", (c.lastrowid))
+            c.execute("INSERT INTO GROUPS(groupname, user_created) VALUES(?,?)", (username + " personal_repo", False))
+            gid = c.lastrowid
+            c.execute("INSERT INTO USER(username, password, repo_id) VALUES(?,?,?)", (username, pword, gid))
+            c.execute("INSERT INTO USER_GROUP(group_id, username) VALUES(?,?)", (gid, username))
             self.conn.commit()
             success = True
         # username is not unique
+        except sqlite3.Warning:
+            print('ignored')
         except Exception as e:
-             print(e)
+            print('Exception in register:', e)
         finally:
             self.lock.release()
             return success
 
-    def upload(self, fileName, tags, owner, group_id):  ## Written by Ayad
+    def create_group(self, gname, members):
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute("INSERT INTO GROUPS(groupname, user_created) VALUES(?,?)", (gname, True))
+            gid = cursor.lastrowid
+            cursor.executemany("INSERT OR IGNORE INTO USER_GROUP(group_id, username) VALUES(?,?)",
+                               [(gid, member) for member in members])
+            self.conn.commit()
+        except sqlite3.Error as e:
+            print('Error in create_group', e)
+            return 0, None
+        return cursor.rowcount, gid
+
+    def add_user_to_group(self, gid, uname):
+        cursor = self.conn.cursor()
+        try:
+            cursor.execute("INSERT OR IGNORE INTO USER_GROUP(group_id, username) VALUES(?,?)",
+                               (gid, uname))
+            self.conn.commit()
+        except sqlite3.Error as e:
+            print('Error in add_user_to_group', e)
+
+        return cursor.rowcount == 1
+
+    def delete_user_from_group(self, gid, uname):
+        cursor = self.conn.cursor()
+        try:
+            cursor.execute("DELETE FROM USER_GROUP WHERE username=? AND group_id=?",
+                               (uname, gid))
+            self.conn.commit()
+        except sqlite3.Error as e:
+            print('Error in add_user_to_group', e)
+        return cursor.rowcount == 1
+
+    def retrieve_repo(self, gid):
+        cursor = self.conn.cursor()
+        try:
+            cursor.execute("SELECT * FROM FILE WHERE group_id=?",
+                            (gid,))
+            files = cursor.fetchall()
+            result = []
+            print(files)
+            for file in files:
+                cursor.execute('SELECT tagname FROM FILE_TAG WHERE filename=? AND group_id=?',
+                               (file[0], file[4]))
+                result.append(file + tuple(tag[0] for tag in cursor.fetchall()))
+            return result
+
+        except sqlite3.Error as e:
+            print('Error in retrieve_repo', e)
+
+    def upload(self, fileName, tags, owner, group_id):  # Written by Ayad
         """
         This method inserts data into the database
         :param fileName:
@@ -118,17 +175,21 @@ class DB:
         :return:
         """
         try:
-            fileQuery = self.conn.execute("INSERT INTO FILE(filename, owner, timestamp) VALUES(?,?,?)",
-                                          (fileName, owner, time.time()))
+            self.conn.execute("INSERT INTO FILE(filename, owner, timestamp, group_id) VALUES(?,?,?,?)",
+                              (fileName, owner, time.time(), group_id))
             for tag in tags:
-                tagQuery = self.conn.execute("INSERT OR IGNORE INTO TAG VALUES(?)", (tag))
-                tagNameQuery = self.conn.execute("INSERT INTO FILE_TAG(filename,tagname) VALUES(?,?)",
-                                                 (fileName, tag))
+                self.conn.execute("INSERT OR IGNORE INTO TAG VALUES(?)",
+                                  (tag,))
+                self.conn.execute("INSERT INTO FILE_TAG(filename, group_id, tagname) VALUES(?,?,?)",
+                                  (fileName, group_id, tag))
             self.conn.commit()
         except sqlite3.Error as e:
             print("An Error Occured: " + e.args[0])
 
-    def delete(self, fileName, owner):
+    def get_personal_repo_id(self, uname):
+        return self.conn.execute('SELECT repo_id FROM USER WHERE username=?', (uname,)).fetchone()[0]
+
+    def delete(self, fname, gid):
         """
         Attempts to delete fileName from the FILES table
 
@@ -138,25 +199,18 @@ class DB:
                  True if the file is found in the FILES table and is deleted
         """
         self.lock.acquire()
-        total_changes = self.conn.total_changes
+        cursor = self.conn.cursor()
         try:
-            cursor = self.conn.execute("""
-                                       DELETE FROM FILE WHERE filename=? AND ? IN
-                                       (SELECT owner FROM USER INNER JOIN
-                                        (FILE INNER JOIN FILE_PERMISSION
-                                         ON FILE.filename = FILE_PERMISSION.filename)
-                                        ON USER.username = FILE_PERMISSION.username);
-                                       """,(fileName, owner))
+            cursor.execute('DELETE FROM FILE WHERE filename=? AND group_id=?;', (fname, gid))
             self.conn.commit()
         except sqlite3.Error:
             return False
         finally:
             self.lock.release()
-            if total_changes - self.conn.total_changes > 0:
+            if cursor.rowcount > 0:
                 return True
             else:
                 return False
-
 
     def __contains__(self, filename, owner):
         cursor = self.conn.cursor()
@@ -166,7 +220,7 @@ class DB:
                           """, (filename, owner))
         return cursor.rowcount > 0
 
-    def search (self, query, owner):
+    def search(self, query, owner):
         """
         Attempts to find all files matching the user's Query.
 
@@ -192,13 +246,13 @@ class DB:
 
             if 'tags' in query:
                 tags = set(query['tags'])
-                if results: # filter results (Intersection of sets)
+                if results:  # filter results (Intersection of sets)
                     results = {result for result in results if result[2] in tags}
                     # result[2] == tagname
-                else: # (union of sets)
+                else:  # (union of sets)
                     for tag in tags:
                         cursor.execute(
-                                """ SELECT FILE.filename, FILE.timestamp, TAG.tagname
+                            """ SELECT FILE.filename, FILE.timestamp, TAG.tagname
                                     FROM FILE INNER JOIN
                                     (TAG INNER JOIN FILE_TAG
                                     ON TAG.tagname = FILE_TAG.tagname)
@@ -211,10 +265,11 @@ class DB:
                 if results:
                     results = {result for result in results if result[0].endswith(query['ext'])}
                 else:
-                    cursor.execute("SELECT * FROM FILE WHERE filename LIKE ? and owner", ('%' + query['ext'], owner))
+                    cursor.execute("SELECT * FROM FILE WHERE filename LIKE ? AND owner", ('%' + query['ext'], owner))
         except Exception:
             raise Exception
         return results
+
 
 if __name__ == '__main__':
     db = DB()
