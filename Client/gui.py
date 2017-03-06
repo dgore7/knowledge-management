@@ -83,4 +83,4 @@ if __name__ == '__main__':
 	app = GUI(user)
 	app.geometry("600x500")
 	app.mainloop()
-	user.close_socket()
+	user.disconnect()

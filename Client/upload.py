@@ -176,3 +176,4 @@ class UploadPage(tk.Frame):
 		Goes back to the starting page.
 		"""
 		gui.show_frame(menu.MenuPage)
+

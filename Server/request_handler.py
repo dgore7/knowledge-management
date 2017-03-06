@@ -1,10 +1,9 @@
 import threading
-from tkinter import filedialog
-from tkinter import *
-
 from Server import connections
+from socket import SHUT_RDWR, error as SocketError, errno as SocketErrno
 
-from Server.controllers import file_controller as f_ctrlr, user_controller as u_ctrlr
+from Server.controllers import SUCCESS, FAILURE, file_controller as f_ctrlr, user_controller as u_ctrlr
+
 
 
 class RequestHandler(threading.Thread):
@@ -13,9 +12,9 @@ class RequestHandler(threading.Thread):
         threading.Thread.__init__(self)
         self.connection = connection
         connections.append(self.connection)
+        self.connected = True
         print("Connection made")
         self.username = ""
-
 
     def run(self):
         raw_request = self.connection.recv(2048)
@@ -93,8 +92,9 @@ class RequestHandler(threading.Thread):
         #self.process_request(request)
         else:
             print("Empty request body")
-        self.connection.close()
-        connections.remove(self.connection)
+        # self.connection.close()
+        # connections.remove(self.connection)
+
 
     def process_request(self, request):
         if "query" not in request:
