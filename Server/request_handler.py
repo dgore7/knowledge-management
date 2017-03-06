@@ -28,6 +28,7 @@ class RequestHandler(threading.Thread):
                     print("SENDING OK MESSAGE!")
                     self.connection.send(SUCCESS)
                     msg = self.connection.recv(1024).decode()
+                    print(msg)
                     login_info = self.parse_request(msg)
                     print("Logging in with: ")
                     u_ctrlr.login_user(self.connection, login_info)

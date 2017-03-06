@@ -1,6 +1,7 @@
-# Pycharm files
+# other files
 .idea/
 .DS_Store/
+FILE_REPO/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

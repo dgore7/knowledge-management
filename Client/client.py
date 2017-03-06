@@ -7,7 +7,6 @@ import pickle
 
 import codecs
 import ssl
-from Client import auth_client
 from Client.client_c import client_api
 
 
@@ -70,8 +69,8 @@ class Client:
         print("Hello")
         status_code = connection.recv(2)
         print("MSG Replayed")
-        decoded_status_code = status_code.decode()
-        if decoded_status_code != client_api.SUCCESS:
+        # decoded_status_code = status_code.decode()
+        if status_code != client_api.SUCCESS:
             print("Failled")
             return
 
@@ -82,7 +81,7 @@ class Client:
         connection.send(login_info.encode())
         # self.sock.send(login_info.encode())
         # connection.close()
-        server_response = connection.recv(2).decode()  # "login_response|bad" or "login_response|good"
+        server_response = connection.recv(2)  # "login_response|bad" or "login_response|good"
         if server_response == client_api.SUCCESS:
             return 1
         else:
