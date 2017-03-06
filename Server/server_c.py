@@ -1,12 +1,7 @@
-import sys
-import socket
-
-<<<<<<< HEAD
-=======
+# Definitions file for server API variables/strings.
+# Make calls to these variables in code instead of explicit definitions.
 
 
-
->>>>>>> dgore7/master
 # Definitions file for server API variables/strings.
 # Make calls to these variables in code instead of explicit definitions.
 class client_api:
@@ -22,9 +17,3 @@ class client_api:
 
     # Server message codes
     login_status_code = "login_status"
-    login_status_good = "ok"
-    login_status_bad = "bad"
-
-    # Universal message codes
-    SUCCESS = "OK".encode()
-    FAILURE = "KO".encode()
