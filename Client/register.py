@@ -77,7 +77,7 @@ class RegisterPage(tk.Frame):
 
 	def register(self, gui, username, password):
 		if( username and password ):
-			if (len(password) < 12):
+			if (len(password) < 8):
 				"""
                 Displays a pop up if username is not available.
                 Clears both textboxes to enter new information.

@@ -14,6 +14,7 @@ class RequestHandler(threading.Thread):
         connections.append(self.connection)
         self.connected = True
         print("Connection made")
+        self.username = ""
 
     def run(self):
         while self.connected:

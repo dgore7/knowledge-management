@@ -7,7 +7,6 @@ from Server import connections
 import ssl
 from OpenSSL import crypto
 from os.path import exists, join
-
 import threading
 
 
