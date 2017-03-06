@@ -5,7 +5,7 @@ import time
 
 import pickle
 
-from . import SUCCESS, FAILURE
+from Client import SUCCESS, FAILURE
 import codecs
 import ssl
 #import OpenSSL
@@ -74,15 +74,19 @@ class Client:
 
         login_info = "username:" + username + ";" + "password:" + password
 
-        print(login_info)
+        # print(login_info)
 
         connection.send(login_info.encode())
         #self.sock.send(login_info.encode())
         #connection.close()
-        server_response = connection.recv(2).decode() # "login_response|bad" or "login_response|good"
+        print("before server response")
+        server_response = connection.recv(2).decode()
+        print("after server response")
         if server_response == SUCCESS:
+            print("OK")
             return 1
         else:
+            print("NOT OK")
             return 0
 
     def register(self, username, password):

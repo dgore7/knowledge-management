@@ -1,16 +1,15 @@
 from . import db
+from . import SUCCESS, FAILURE
 
-
-def login_user(login_info):
+def login_user(connection, login_info):
     print("Inside login")
     username = login_info['username']
     password = login_info['password']
     if db.login(username, password):
-        print("Leaving LoginHandler")
-        return True
+        connection.send(SUCCESS)
     else:
-        print("Leaving LoginHandler")
-        return False
+        connection.send(FAILURE)
+
 
 
 def register_user(register_info):

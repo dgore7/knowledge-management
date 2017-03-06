@@ -27,23 +27,20 @@ class RequestHandler(threading.Thread):
                 if client_option == "login":
                     print("SENDING OK MESSAGE!")
                     self.connection.send(SUCCESS)
-                    msg = self.connection.recv(1024)
+                    msg = self.connection.recv(1024).decode()
                     login_info = self.parse_request(msg)
-                    print("Logging in with: " + msg.decode())
-                    if not u_ctrlr.login_user(login_info):
-                        self.connection.send(FAILURE)
-                    else:
-                        self.connection.send(SUCCESS)
+                    print("Logging in with: ")
+                    u_ctrlr.login_user(self.connection, login_info)
 
                 elif client_option == "register":
                     msg = self.connection.recv(1024).decode()
                     print("Registering user: " + msg)
                     if u_ctrlr.register_user(self.parse_request(msg)):
                         self.connection.send(SUCCESS)
-                        print("Successfully registered user: " + msg)
+                        print("Successfully registered user: ")
                     else:
                         self.connection.send(FAILURE)
-                        print("Failed to register user: " + msg)
+                        print("Failed to register user: ")
 
                 elif client_option == "upload":
                     self.connection.send(SUCCESS)
