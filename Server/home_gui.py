@@ -64,5 +64,5 @@ class HomePage(tk.Frame):
 		gui.setServer(None)
 
 	def server_start_commands(self, gui):
-		gui.setServer(server.Server())
+		gui.setServer(server.Server(gui))
 		gui.getServer().start()

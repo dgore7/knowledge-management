@@ -12,10 +12,11 @@ import threading
 
 
 class Server(threading.Thread):
-    def __init__(self):
+    def __init__(self, gui):
         super(Server, self).__init__()
         self._stop = threading.Event()
         self.is_listening=False
+        self.gui = gui
 
 
     def stop(self):
@@ -74,11 +75,11 @@ class Server(threading.Thread):
 
             # create a self-signed cert
             cert = crypto.X509()
-            cert.get_subject().C = "US"
-            cert.get_subject().ST = "Illinois"
-            cert.get_subject().L = "Chicago"
-            cert.get_subject().O = "CSC 376 - Distributed Systems"
-            cert.get_subject().OU = "Knowledge Management Group"
+            cert.get_subject().C = self.gui.clientSettings.selfSignedCountry
+            cert.get_subject().ST = self.certificateSettings.selfSignedCertState
+            cert.get_subject().L = self.certificateSettings.selfSignedCertLocation
+            cert.get_subject().O = self.certificateSettings.selfSignedCertOrganization
+            cert.get_subject().OU = self.certificateSettings.selfSignedCertOrganizationU
             cert.get_subject().CN = socket.gethostname()
             cert.set_serial_number(1000)
             cert.gmtime_adj_notBefore(0)
