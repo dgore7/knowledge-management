@@ -82,6 +82,7 @@ def retrieve_repo(connection, query):
     except KeyError as e:
         msg = ','.join(arg for arg in e.args).encode()
         connection.send(FAILURE + msg)
+        return
     connection.send(SUCCESS)
     repo = db.retrieve_repo(group_id)
     pickled_repo = pickle.dumps(repo)
@@ -90,8 +91,7 @@ def retrieve_repo(connection, query):
 
 def retrieve_personal_repo(connection, uname):
     repo_id = db.get_personal_repo_id(uname)
-    retrieve_repo(connection, repo_id)
-
+    retrieve_repo(connection, {'group_id': repo_id})
 
 def delete_file(connection, query):
     print("Inside DeleteHandler")

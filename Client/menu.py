@@ -2,13 +2,13 @@ import tkinter as tk
 
 from tkinter import TOP, RAISED
 
-import start
-import upload
-import retrieve
-import search
-import delete
-import group
-import group_management
+from Client import start
+from Client import upload
+from Client import retrieve
+from Client import search
+from Client import delete
+from Client import group
+from Client import group_management
 
 
 class MenuPage(tk.Frame):

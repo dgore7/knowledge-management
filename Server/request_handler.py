@@ -17,85 +17,108 @@ class RequestHandler(threading.Thread):
         self.username = ""
 
     def run(self):
-        raw_request = self.connection.recv(2048)
-        print(raw_request)
+        while self.connected:
+            raw_request = self.connection.recv(2048)
+            print(raw_request.decode())
 
-        if len(raw_request):
-            client_option = raw_request.decode()
-            print("CO: " + client_option)
+            if len(raw_request):
+                client_option = raw_request.decode()
+                print("CO: " + client_option)
 
-            if client_option == "login":
-                self.connection.send("OK".encode())
-                msg = self.connection.recv(1024)
-                print(msg)
-                user_info = msg.decode()
-                print("Logging in with: " + user_info)
-                self.username = user_info.split(":")[0]
-                print(self.username)
-                u_ctrlr.login_user(user_info)
+                if client_option == "login":
+                    print("SENDING OK MESSAGE!")
+                    self.connection.send(SUCCESS)
+                    msg = self.connection.recv(1024).decode()
+                    login_info = self.parse_request(msg)
+                    print("Logging in with: ")
+                    u_ctrlr.login_user(self.connection, login_info)
 
+                elif client_option == "register":
+                    msg = self.connection.recv(1024).decode()
+                    print("Registering user: " + msg)
+                    if u_ctrlr.register_user(self.parse_request(msg)):
+                        self.connection.send(SUCCESS)
+                        print("Successfully registered user: ")
+                    else:
+                        self.connection.send(FAILURE)
+                        print("Failed to register user: ")
 
-            elif client_option == "register":
-                msg = self.connection.recv(1024)
-                print("Registering user: " + msg.decode())
-                u_ctrlr.register_user(msg)
+                elif client_option == "upload":
+                    self.connection.send(SUCCESS)
+                    msg = self.connection.recv(1024).decode()
+                    print("Received: " + msg)
+                    msg = self.parse_request(msg)
+                    f_ctrlr.upload_file(self.connection, msg)
 
-            elif client_option == "create_group":
-                self.connection.send("OK".encode())
-                group_name = self.connection.recv(1024)
-                print("Creating Group: " + group_name.decode())
-                self.connection.send("SUCCESS".encode())
-                members = []
-                while True:
-                    member = self.connection.recv(1024)
-                    if member.decode() == "DONE":
-                        break
-                    print("Member: " + member.decode())
-                    members.append(member.decode())
-                    self.connection.send("ADDED".encode())
+                elif client_option == "retrieve":
+                    msg = self.connection.recv(1024)
+                    print("Retrieving File: " + msg.decode())
+                    f_ctrlr.retrieve_file(msg)
 
-                u_ctrlr.create_group(group_name, members)
+                elif client_option == "retrieve_repo":
+                    self.connection.send(SUCCESS)
+                    msg = self.connection.recv(1024).decode()
+                    print("Retrieving File: " + msg)
+                    f_ctrlr.retrieve_file(self.parse_request(msg))
 
-            elif client_option == "add":
-                self.connection.send("OK".encode())
-                member_name = self.connection.recv(1024)
-                print("Adding: " + member_name.decode())
-                u_ctrlr.add_member(member_name)
+                elif client_option == "search":
+                    msg = self.connection.recv(1024)
+                    print("Searching for: " + msg.decode())
+                    f_ctrlr.search_file(msg)
 
-            elif client_option == "remove":
-                self.connection.send("OK".encode())
-                member_name = self.connection.recv(1024)
-                print("Removing: " + member_name.decode())
-                u_ctrlr.remove_member(member_name)
+                elif client_option == "delete":
+                    self.connection.send(SUCCESS)
+                    msg = self.connection.recv(1024).decode()
+                    print("Deleting file: " + msg)
+                    f_ctrlr.delete_file(self.connection, self.parse_request(msg))
 
+                elif client_option == "create_group":
+                    self.connection.send("OK".encode())
+                    group_name = self.connection.recv(1024)
+                    print("Creating Group: " + group_name.decode())
+                    self.connection.send("SUCCESS".encode())
+                    members = []
+                    while True:
+                        member = self.connection.recv(1024)
+                        if member.decode() == "DONE":
+                            break
+                        print("Member: " + member.decode())
+                        members.append(member.decode())
+                        self.connection.send("ADDED".encode())
 
-            elif client_option == "upload":
-                self.connection.send("OK".encode())
-                msg = self.connection.recv(1024)
-                print ("Received: " + msg.decode())
-                f_ctrlr.upload_file(self.connection, msg)
+                    u_ctrlr.create_group(group_name, members)
 
+                elif client_option == "add":
+                    self.connection.send("OK".encode())
+                    member_name = self.connection.recv(1024)
+                    print("Adding: " + member_name.decode())
+                    u_ctrlr.add_member(member_name)
 
-            elif client_option == "download":
-                self.connection.send("OK".encode())
-                msg = self.connection.recv(1024)
-                print("Retrieving File: " + msg.decode())
-                f_ctrlr.download_file(self.connection, msg)
+                elif client_option == "remove":
+                    self.connection.send("OK".encode())
+                    member_name = self.connection.recv(1024)
+                    print("Removing: " + member_name.decode())
+                    u_ctrlr.remove_member(member_name)
 
+                else:
+                    self.connection.send(FAILURE)
 
-            elif client_option == "delete":
-                self.connection.send("OK".encode())
-                msg = self.connection.recv(1024)
-                print("Deleting file: " + msg.decode())
-                f_ctrlr.delete_file(self.connection, msg)
+            #request = self.parse_request(raw_request.decode())
+            #self.process_request(request)
+            else:
+                print("Empty request body")
+                connections.remove(self.connection)
+                try:
+                    self.connection.shutdown(SHUT_RDWR)
+                    self.connection.close()
+                except OSError as e:
+                    if e.args[0] == 57:
+                        print("Connection was already closed!")
 
-        #request = self.parse_request(raw_request.decode())
-        #self.process_request(request)
-        else:
-            print("Empty request body")
-        # self.connection.close()
-        # connections.remove(self.connection)
-
+                self.connected = False
+                print("Disconnected from the client!")
+            #self.connection.close()
+            #connections.remove(self.connection)
 
     def process_request(self, request):
         if "query" not in request:

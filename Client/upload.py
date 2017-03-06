@@ -5,7 +5,7 @@ from tkinter import *
 from tkinter import TOP, E
 import tkinter.messagebox
 
-import menu
+from Client import menu
 
 
 class UploadPage(tk.Frame):
@@ -133,7 +133,7 @@ class UploadPage(tk.Frame):
 
 		elif filename and tag and comment:
 			if self.file_path:
-				response = gui.getClient().upload(self.file_path, tag, comment, self.repo_destination.get())
+				response = gui.getClient().upload(self.file_path, [tag], comment, self.repo_destination.get())
 			else:
 				response = gui.getClient().upload(filename, tag, comment, self.repo_destination.get())
 

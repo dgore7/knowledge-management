@@ -79,13 +79,12 @@ class DB:
         # user will either be the one result, or 'None'
         user = cursor.fetchone()
         if user is None:
-            return False
+            return None
         elif user[0] == username:
-            return True
-
+            return user[2]
         # backup catchall if for some reason the returned username != input username
         else:
-            return 0
+            return None
 
     def register(self, username, pword):
         """
@@ -103,6 +102,7 @@ class DB:
         try:
             c.execute("INSERT INTO GROUPS(groupname, user_created) VALUES(?,?)", (username + " personal_repo", False))
             gid = c.lastrowid
+            print(type(gid))
             c.execute("INSERT INTO USER(username, password, repo_id) VALUES(?,?,?)", (username, pword, gid))
             c.execute("INSERT INTO USER_GROUP(group_id, username) VALUES(?,?)", (gid, username))
             self.conn.commit()
