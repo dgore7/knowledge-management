@@ -5,13 +5,13 @@ from tkinter import *
 from tkinter import TOP, E
 import tkinter.messagebox
 
-from Client import menu
+from Client import menu, g_personal_repoid
 
 
 class UploadPage(tk.Frame):
 	def __init__(self, frame, gui):
-		# parameter: frame
-		# parameter: gui
+		#parameter: frame
+		#parameter: gui
 
 		"""
 		Init the frame.
@@ -97,7 +97,7 @@ class UploadPage(tk.Frame):
 
 		"""
 		Creates and adds a upload button.
-		Takes all text the client enters and
+		Takes all text the client enters and 
 		uploads the file with the corresponding information.
 		"""
 		uploadButton = tk.Button(bottom, text="Upload",
@@ -133,9 +133,9 @@ class UploadPage(tk.Frame):
 
 		elif filename and tag and comment:
 			if self.file_path:
-				response = gui.getClient().upload(self.file_path, tag, comment, self.repo_destination.get())
+				response = gui.getClient().upload(self.file_path, [tag], comment, g_personal_repoid)
 			else:
-				response = gui.getClient().upload(filename, tag, comment, self.repo_destination.get())
+				response = gui.getClient().upload(filename, tag, comment, g_personal_repoid)
 
 			if response == "FILE NOT FOUND":
 				tkinter.messagebox.showinfo("Warning", "File " + filename + " was not found. The file was not uploaded")
@@ -176,3 +176,4 @@ class UploadPage(tk.Frame):
 		Goes back to the starting page.
 		"""
 		gui.show_frame(menu.MenuPage)
+

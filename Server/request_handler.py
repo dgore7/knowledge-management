@@ -14,6 +14,7 @@ class RequestHandler(threading.Thread):
         connections.append(self.connection)
         self.connected = True
         print("Connection made")
+        self.username = ""
 
     def run(self):
         while self.connected:
@@ -47,6 +48,7 @@ class RequestHandler(threading.Thread):
                     self.connection.send(SUCCESS)
                     msg = self.connection.recv(1024).decode()
                     print("Received: " + msg)
+                    msg = self.parse_request(msg)
                     f_ctrlr.upload_file(self.connection, msg)
 
                 elif client_option == "retrieve":
@@ -70,6 +72,34 @@ class RequestHandler(threading.Thread):
                     msg = self.connection.recv(1024).decode()
                     print("Deleting file: " + msg)
                     f_ctrlr.delete_file(self.connection, self.parse_request(msg))
+
+                elif client_option == "create_group":
+                    self.connection.send("OK".encode())
+                    group_name = self.connection.recv(1024)
+                    print("Creating Group: " + group_name.decode())
+                    self.connection.send("SUCCESS".encode())
+                    members = []
+                    while True:
+                        member = self.connection.recv(1024)
+                        if member.decode() == "DONE":
+                            break
+                        print("Member: " + member.decode())
+                        members.append(member.decode())
+                        self.connection.send("ADDED".encode())
+
+                    u_ctrlr.create_group(group_name, members)
+
+                elif client_option == "add":
+                    self.connection.send("OK".encode())
+                    member_name = self.connection.recv(1024)
+                    print("Adding: " + member_name.decode())
+                    u_ctrlr.add_member(member_name)
+
+                elif client_option == "remove":
+                    self.connection.send("OK".encode())
+                    member_name = self.connection.recv(1024)
+                    print("Removing: " + member_name.decode())
+                    u_ctrlr.remove_member(member_name)
 
                 else:
                     self.connection.send(FAILURE)

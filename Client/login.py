@@ -3,7 +3,7 @@ import tkinter as tk
 from tkinter import TOP, E
 import tkinter.messagebox
 
-import gui
+from Client import gui
 from Client import start
 from Client import menu
 

@@ -1,6 +1,7 @@
-# other files
+# Pycharm files
 .idea/
 .DS_Store/
+.DS_Store
 FILE_REPO/*
 *.crt
 *.key
