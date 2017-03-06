@@ -8,3 +8,4 @@ pycparser==2.17
 pyOpenSSL==16.2.0
 six==1.10.0
 SQLAlchemy==1.1.5
+paramiko==2.1.2

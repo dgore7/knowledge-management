@@ -27,11 +27,12 @@ class RequestHandler(threading.Thread):
             if client_option == "login":
                 self.connection.send("OK".encode())
                 msg = self.connection.recv(1024)
+                print(msg)
                 user_info = msg.decode()
                 print("Logging in with: " + user_info)
                 self.username = user_info.split(":")[0]
                 print(self.username)
-                u_ctrlr.login_user(msg)
+                u_ctrlr.login_user(user_info)
 
 
             elif client_option == "register":

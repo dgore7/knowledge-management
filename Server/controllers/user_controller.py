@@ -3,6 +3,7 @@ from . import db
 
 def login_user(login_info):
     print("Inside login")
+    print(login_info)
     username = login_info['username']
     password = login_info['password']
     if db.login(username, password):
