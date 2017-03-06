@@ -2,16 +2,18 @@
 
 import tkinter as tk
 
-import start
-import login
-import register
-import menu
-import upload
-import retrieve
-import search
-import delete
+from Client import group
+from Client import group_management
+from Client import start
+from Client import login
+from Client import register
+from Client import menu
+from Client import upload
+from Client import retrieve
+from Client import search
+from Client import delete
 
-from client import Client
+from Client.client import Client
 
 
 class GUI(tk.Tk):
@@ -39,7 +41,7 @@ class GUI(tk.Tk):
 		"""
 		window = tk.Frame(self)
 		window.pack(side="top", fill="both", expand="True")
-		window.grid_rowconfigure(0, weight=1)#Who gets prority
+		window.grid_rowconfigure(0, weight=1)
 
 		window.grid_columnconfigure(0, weight=1)
 
@@ -53,7 +55,8 @@ class GUI(tk.Tk):
 		and stores each of them into the frames dictionary.
 		"""
 		for F in (start.StartPage, login.LoginPage, register.RegisterPage, menu.MenuPage,
-			upload.UploadPage, retrieve.RetrievePage, search.SearchPage, delete.DeletePage):
+			upload.UploadPage, retrieve.RetrievePage, search.SearchPage, delete.DeletePage,
+		    group.GroupPage, group_management.GroupManagementPage):
 			frame = F(window, self)
 			self.frames[F] = frame
 			frame.grid(row = 0, sticky = "nsew")
@@ -78,6 +81,6 @@ class GUI(tk.Tk):
 if __name__ == '__main__':
 	user = Client()
 	app = GUI(user)
-	app.geometry("400x150")
+	app.geometry("600x500")
 	app.mainloop()
 	user.disconnect()
