@@ -2,7 +2,6 @@
 
 import tkinter as tk
 
-<<<<<<< HEAD
 import start
 import login
 import register
@@ -13,18 +12,8 @@ import search
 import delete
 import group
 import group_management
-=======
-from Client import start
-from Client import login
-from Client import register
-from Client import menu
-from Client import upload
-from Client import retrieve
-from Client import search
-from Client import delete
->>>>>>> dgore7/master
 
-from Client.client import Client
+from client import Client
 
 
 class GUI(tk.Tk):
@@ -92,10 +81,6 @@ class GUI(tk.Tk):
 if __name__ == '__main__':
 	user = Client()
 	app = GUI(user)
-<<<<<<< HEAD
 	app.geometry("600x500")
-=======
-	app.geometry("500x500")
->>>>>>> dgore7/master
 	app.mainloop()
 	user.disconnect()

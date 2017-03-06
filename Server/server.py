@@ -10,6 +10,7 @@ from OpenSSL import crypto
 from os.path import exists, join
 
 
+
 def create_socket(port, host='localhost'):
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -19,14 +20,12 @@ def create_socket(port, host='localhost'):
 
 
 def create_secure_socket(cert_dir, host='localhost', port=8001):
-    context = ssl.SSLContext(protocol=ssl.PROTOCOL_TLSv1)  # Defaults to SSL/TLS support
-    context.verify_mode = ssl.CERT_OPTIONAL  # ssl.CERT_REQUIRED is more secure
-    context.check_hostname = False  # Hostname verification on certs (Dont want for now)
-    context.load_default_certs(
-        purpose=ssl.Purpose.CLIENT_AUTH)  # Load the public CA certs for the server socket (need CLIENT_AUTH param)
+    context = ssl.SSLContext(protocol=ssl.PROTOCOL_TLSv1) # Defaults to SSL/TLS support
+    context.verify_mode = ssl.CERT_OPTIONAL # ssl.CERT_REQUIRED is more secure
+    context.check_hostname = False # Hostname verification on certs (Dont want for now)
+    context.load_default_certs(purpose=ssl.Purpose.CLIENT_AUTH) # Load the public CA certs for the server socket (need CLIENT_AUTH param)
     generate_server_self_cert(cert_dir)
-    context.load_cert_chain(join(cert_dir, "KnowledgeManagement.crt"),
-                            keyfile=join(cert_dir, "KnowledgeManagement.key"))  # TODO FIX THE certfile path!!!!!!!!!!
+    context.load_cert_chain(join(cert_dir, "KnowledgeManagement.crt"), keyfile=join(cert_dir, "KnowledgeManagement.key")) # TODO FIX THE certfile path!!!!!!!!!!
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     secureSocket = context.wrap_socket(server, server_side=True)
@@ -36,7 +35,7 @@ def create_secure_socket(cert_dir, host='localhost', port=8001):
 
 
 def generate_server_self_cert(cert_dir):
-    # parameter: cert_dir -> The directory to store the certificates in.
+    #parameter: cert_dir -> The directory to store the certificates in.
 
     # Add code to call OpenSSL to generate a certificate for the server to use
     # Might require an import of PyOpenSSL (OpenSSL)
@@ -46,7 +45,7 @@ def generate_server_self_cert(cert_dir):
 
     if not exists(join(cert_dir, CERT_FILE)) \
             or not exists(join(cert_dir, KEY_FILE)):
-        # create a key pair
+            # create a key pair
         publicKey = crypto.PKey()
         publicKey.generate_key(crypto.TYPE_RSA, 1024)
 
@@ -60,10 +59,10 @@ def generate_server_self_cert(cert_dir):
         cert.get_subject().CN = socket.gethostname()
         cert.set_serial_number(1000)
         cert.gmtime_adj_notBefore(0)
-        cert.gmtime_adj_notAfter(10 * 365 * 24 * 60 * 60)
+        cert.gmtime_adj_notAfter(10*365*24*60*60)
         cert.set_issuer(cert.get_subject())
         cert.set_pubkey(publicKey)
-        cert.sign(publicKey, 'sha1')  # SHA1 has known theoretical attack to produce collisions!
+        cert.sign(publicKey, 'sha1') # SHA1 has known theoretical attack to produce collisions!
 
         open(join(cert_dir, CERT_FILE), "wb").write(
             crypto.dump_certificate(crypto.FILETYPE_PEM, cert))
@@ -87,10 +86,10 @@ def server_shutdown(server):
     server.close()
     for c in connections:
         c.close()
-
+        
 
 if __name__ == '__main__':
-    server = create_secure_socket(os.path.normpath(os.path.join(os.getcwd(), '..')), 'localhost', 8001)
+    server = create_secure_socket(os.path.normpath(os.path.join(os.getcwd(),'..')), 'localhost', 8001)
     # server = create_socket(sys.argv[1] if len(sys.argv) >= 2 else 8001)
     atexit.register(server_shutdown, server)
     server.listen(10)

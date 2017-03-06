@@ -2,7 +2,7 @@ import tkinter as tk
 
 from tkinter import TOP, E
 
-from Client import menu
+import menu
 
 
 class DeletePage(tk.Frame):

@@ -6,17 +6,10 @@ import time
 
 import pickle
 
-<<<<<<< HEAD
 from Client.client_c import client_api
-=======
->>>>>>> dgore7/master
 import codecs
 import ssl
-from Client import auth_client
-from Client.client_c import client_api
-
-
-# import OpenSSL
+#import OpenSSL
 
 
 class Client:
@@ -33,12 +26,7 @@ class Client:
         # message = "query:" + sys.stdin.readline()
         # self.sock.send(message.encode())
 
-<<<<<<< HEAD
    def connect(self, cert_file_path = os.path.normpath(os.path.join(os.getcwd(),'../KnowledgeManagement.crt')), host='localhost', port=8001):
-=======
-    def connect(self, cert_file_path=os.path.normpath(os.path.join(os.getcwd(), '../KnowledgeManagement.crt')),
-                host='localhost', port=8001):
->>>>>>> dgore7/master
         # parameter: host -> The desired host for the new connection.
         # parameter: port -> The desired port for the new connection.
         # parameter: use_ssl -> Can be set to False to disable SSL for the client connecting
@@ -80,10 +68,7 @@ class Client:
         status_code = connection.recv(2)
         print("MSG Replayed")
         decoded_status_code = status_code.decode()
-<<<<<<< HEAD
 
-=======
->>>>>>> dgore7/master
         if decoded_status_code != client_api.SUCCESS:
             print("Failled")
             return
@@ -93,15 +78,9 @@ class Client:
         print(login_info)
 
         connection.send(login_info.encode())
-<<<<<<< HEAD
         #self.sock.send(login_info.encode())
         #connection.close()
         server_response = connection.recv(2).decode() # "login_response|bad" or "login_response|good"
-=======
-        # self.sock.send(login_info.encode())
-        # connection.close()
-        server_response = connection.recv(2).decode()  # "login_response|bad" or "login_response|good"
->>>>>>> dgore7/master
         if server_response == client_api.SUCCESS:
             return 1
         else:
@@ -197,7 +176,7 @@ class Client:
         if status_code != client_api.SUCCESS:
             print("failed")
             return
-        msg = ['filename:', filename, ';']
+        msg = ['filename:',filename, ';']
         msg.extend(['notes:', notes, ';'])
         msg.extend(['tags:'].extend(tag + ',' for tag in tags))
         msg = ''.join(msg)
@@ -211,7 +190,6 @@ class Client:
         except FileNotFoundError:
             file_exist = False
 
-<<<<<<< HEAD
 
         #print("Recent Access: " + str(time.gmtime(file_stat.st_atime)))
         #print("Year: " + str(time_date[0]))
@@ -267,17 +245,11 @@ class Client:
             # sys.stdout.write(line.decode())
 
             #sys.stdout.write(line.decode())
-=======
-        file = open(filename, "rb")
-        # file = codecs.open(filename, "rb", "utf-8")
-        for line in file:
-            # sys.stdout.write(line.decode())
->>>>>>> dgore7/master
             connection.send(line)
 
         file.close()
         print("Closing file")
-        # connection.close()
+        #connection.close()
 
         return "SUCCESS"
 
@@ -353,7 +325,7 @@ class Client:
 
         connection.send(filename.encode())
         print(filename)
-        # sock.close()
+        #sock.close()
 
    def retrieve_repo(self, group_id=None, username=None):
         connection = self.sock
@@ -382,35 +354,22 @@ class Client:
         connection = self.sock
         connection.send("search".encode())
 
-        # Maybe can use query statement here
+        #Maybe can use query statement here
         connection.send(filename.encode())
         print(filename)
-        # sock.close()
+        #sock.close()
 
    def delete(self, filename, group_id):
         connection = self.sock
         connection.send("delete".encode())
         if not connection.recv(2).decode() == client_api.SUCCESS:
             return False
-        msg = 'filename:' + filename + ';group_id:' + group_id
+        msg = 'filename:' +  filename + ';group_id:' + group_id
         connection.send(msg.encode())
         result = connection.recv(1024).decode()
         if result != client_api.SUCCESS:
             print(result)
             return False
         return True
-<<<<<<< HEAD
         #sock.close()
 
-=======
-        # sock.close()
-
-    if __name__ == '__main__':
-        print("enter a query:")
-        port = 8001 if len(sys.argv) != 2 else sys.argv[1]
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.connect(("localhost", int(port)))
-        message = "query:" + sys.stdin.readline()
-        sock.send(message.encode())
-        # sock.close()
->>>>>>> dgore7/master
