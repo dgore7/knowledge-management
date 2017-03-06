@@ -1,0 +1,2 @@
+SUCCESS = "OK"
+FAILURE = "KO"
