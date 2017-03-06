@@ -6,15 +6,14 @@ import time
 
 import pickle
 
+from Client import client_c
 from Client.client_c import client_api
 import codecs
 import ssl
 # from Client import auth_client
 from Client.client_c import client_api
 from Client import g_personal_repoid, SOCKET_EOF
-
-
-# import OpenSSL
+from socket import error as SocketError
 
 
 class Client:
@@ -60,9 +59,13 @@ class Client:
 
     def disconnect(self):
         if self.connected:
-            self.sock.shutdown(socket.SHUT_RDWR)
-            self.sock.close()
-            self.connected = False
+            try:
+                self.sock.shutdown(socket.SHUT_WR)
+                self.sock.close()
+                self.connected = False
+            except SocketError as e:
+                print("Server must have disconnected first!")
+
             print("Disconnection successful!")
         else:
             print("Nothing to disconnect!")

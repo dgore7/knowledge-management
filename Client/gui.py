@@ -79,7 +79,7 @@ class GUI(tk.Tk):
 		return self.user
 
 if __name__ == '__main__':
-	user = Client()
+	user = client.Client()
 	app = GUI(user)
 	app.geometry("600x500")
 	app.mainloop()

@@ -14,8 +14,6 @@ def login_user(connection, login_info):
     else:
         connection.send(FAILURE)
 
-
-
 def register_user(register_info):
     print("Inside RegisterHandler")
     username = register_info['username']
@@ -27,6 +25,3 @@ def register_user(register_info):
                 os.path.join(
                     os.getcwd(),
                     'FILE_REPO', username + '_personal_repo')))
-
-
-

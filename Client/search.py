@@ -4,7 +4,7 @@ import tkinter.messagebox
 
 from tkinter import TOP, E
 
-import menu
+from Client import menu
 
 
 class SearchPage(tk.Frame):

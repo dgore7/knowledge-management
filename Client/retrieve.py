@@ -2,7 +2,7 @@ import tkinter as tk
 
 from tkinter import TOP, E
 
-import menu
+from Client import menu
 
 
 class RetrievePage(tk.Frame):

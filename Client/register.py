@@ -6,7 +6,6 @@ import tkinter.messagebox
 from Client import gui
 from Client import start
 from Client import menu
-# from Client import auth_client
 
 import re
 
