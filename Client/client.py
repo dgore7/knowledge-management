@@ -3,7 +3,6 @@ import socket
 import os
 import time
 
-
 import pickle
 
 from Client.client_c import client_api
@@ -98,6 +97,11 @@ class Client:
         connection = self.sock
         connection.send("register".encode())
 
+        # credentials = LoginEncoding(username, password)
+        # username = credentials.getUsername()
+        # password = credentials.getPassword()
+        # key = credentials.getKey()
+
         register_info = "username:" + username + ";" + "password:" + password
         connection.send(register_info.encode())
         server_response = connection.recv(2)
@@ -130,7 +134,6 @@ class Client:
             connection.recv(5)
 
         connection.send("DONE".encode())
-
 
         print(group)
         print(members)
@@ -170,7 +173,6 @@ class Client:
         connection.close()
 
         return "SUCCESS"
-
 
     def upload(self, filename, tags, notes, repo):
         connection = self.sock
@@ -245,7 +247,7 @@ class Client:
         #
         # status_code = connection.recv(7)
 
-        file = open(filename,"rb")
+        file = open(filename, "rb")
 
         for line in file:
             print(line)
@@ -254,7 +256,6 @@ class Client:
         file.close()
         print("Closing file")
         # connection.close()
-
 
     def download(self, filename):
         connection = self.connect()
@@ -376,6 +377,7 @@ class Client:
         return True
 
         # sock.close()
+
 
 if __name__ == '__main__':
     print("enter a query:")

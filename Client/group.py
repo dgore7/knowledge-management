@@ -7,121 +7,118 @@ import menu
 
 
 class GroupPage(tk.Frame):
-	def __init__(self, frame, gui):
-		tk.Frame.__init__(self, frame)
+    def __init__(self, frame, gui):
+        tk.Frame.__init__(self, frame)
 
-		label = tk.Label(self, text="Group")
-		label.pack(side=TOP)
+        label = tk.Label(self, text="Group")
+        label.pack(side=TOP)
 
-		#Frame used for organization
-		top = tk.Frame(self)
-		top.pack(side=TOP)
+        # Frame used for organization
+        top = tk.Frame(self)
+        top.pack(side=TOP)
 
-		middle = tk.Frame(self)
-		middle.pack(side=TOP)
+        middle = tk.Frame(self)
+        middle.pack(side=TOP)
 
-		#Frame used for organization
-		bottom = tk.Frame(self)
-		bottom.pack(side=TOP)
+        # Frame used for organization
+        bottom = tk.Frame(self)
+        bottom.pack(side=TOP)
 
-		groupText = tk.Label(top, text="Create Group")
-		groupText.grid(row=0, sticky=E)
+        groupText = tk.Label(top, text="Create Group")
+        groupText.grid(row=0, sticky=E)
 
-		self.groupInput = tk.Entry(top)
-		self.groupInput.grid(row=0, column=1)
+        self.groupInput = tk.Entry(top)
+        self.groupInput.grid(row=0, column=1)
 
-		self.members = []
+        self.members = []
 
-		member_label = tk.Label(top, text="Member Name")
-		member_label.grid(row=1, column=0)
+        member_label = tk.Label(top, text="Member Name")
+        member_label.grid(row=1, column=0)
 
-		self.member_entry = tk.Entry(top)
-		self.member_entry.grid(row=1, column=1)
+        self.member_entry = tk.Entry(top)
+        self.member_entry.grid(row=1, column=1)
 
-		addMember = tk.Button(top, text="Add Member", command=lambda: self.addMember())
-		addMember.grid(row=1, column=2)
+        addMember = tk.Button(top, text="Add Member", command=lambda: self.addMember())
+        addMember.grid(row=1, column=2)
 
-		membersText = tk.Label(middle, text="Members Adding")
-		membersText.pack()
+        membersText = tk.Label(middle, text="Members Adding")
+        membersText.pack()
 
-		self.list_members = tk.Listbox(middle)
-		self.list_members.pack()
+        self.list_members = tk.Listbox(middle)
+        self.list_members.pack()
 
-		removeButton = tk.Button(middle, text="Remove", command=lambda: self.removeMember())
-		removeButton.pack(side=RIGHT)
+        removeButton = tk.Button(middle, text="Remove", command=lambda: self.removeMember())
+        removeButton.pack(side=RIGHT)
 
-		groupButton = tk.Button(bottom, text="Create Group",
-								command=lambda: self.createGroup(gui, self.groupInput.get()))
-		groupButton.grid(row=0, column=1)
+        groupButton = tk.Button(bottom, text="Create Group",
+                                command=lambda: self.createGroup(gui, self.groupInput.get()))
+        groupButton.grid(row=0, column=1)
 
-		backButton = tk.Button(bottom, text="Back",
-							command=lambda: self.back(gui))
-		backButton.grid(row=0, column=2)
+        backButton = tk.Button(bottom, text="Back",
+                               command=lambda: self.back(gui))
+        backButton.grid(row=0, column=2)
 
+    def addMember(self):
+        member_name = self.member_entry.get()
+        if member_name == "":
+            tkinter.messagebox.showinfo("Warning", "Please enter the name of a member to add.")
 
+        elif member_name in self.members:
+            tkinter.messagebox.showinfo("Warning", member_name + " is already in the list.")
 
-	def addMember(self):
-		member_name = self.member_entry.get()
-		if member_name == "":
-			tkinter.messagebox.showinfo("Warning", "Please enter the name of a member to add.")
+        else:
+            self.members.append(member_name)
+            print("Adding: " + member_name)
+            self.list_members.insert(END, member_name)
+            self.member_entry.delete(0, 'end')
 
-		elif member_name in self.members:
-			tkinter.messagebox.showinfo("Warning", member_name + " is already in the list.")
+    def removeMember(self):
+        member_name = self.list_members.get(ACTIVE)
 
-		else:
-			self.members.append(member_name)
-			print("Adding: " + member_name)
-			self.list_members.insert(END, member_name)
-			self.member_entry.delete(0, 'end')
+        if member_name:
+            result = tkinter.messagebox.askyesno("Remove Member",
+                                                 "Do you want to remove " + member_name + " from the list?")
+            if result:
+                self.members.remove(member_name)
+                self.list_members.delete(ACTIVE)
 
-	def removeMember(self):
-		member_name = self.list_members.get(ACTIVE)
+    def createGroup(self, gui, group_name):
+        if not group_name and len(self.members) == 0 and self.member_entry.get() == "":
+            tkinter.messagebox.showinfo("Warning", "Please enter a for the group and the name of a member.")
 
-		if member_name:
-			result = tkinter.messagebox.askyesno("Remove Member", "Do you want to remove " + member_name + " from the list?")
-			if result:
-				self.members.remove(member_name)
-				self.list_members.delete(ACTIVE)
+        elif len(self.members) == 0 and self.member_entry.get() == "":
+            tkinter.messagebox.showinfo("Warning", "Please enter the name of at least one group member.")
 
+        elif not group_name:
+            tkinter.messagebox.showinfo("Warning", "Please enter a name for the group.")
 
+        elif group_name:
+            if self.member_entry.get():
+                self.members.append(self.member_entry.get())
 
-	def createGroup(self, gui, group_name):
-		if not group_name and len(self.members) == 0 and self.member_entry.get() == "":
-			tkinter.messagebox.showinfo("Warning", "Please enter a for the group and the name of a member.")
+            response = gui.getClient().createGroup(group_name, self.members)
 
-		elif len(self.members) == 0 and self.member_entry.get() == "":
-			tkinter.messagebox.showinfo("Warning", "Please enter the name of at least one group member.")
+            if response == "SUCCESS":
+                tk.messagebox.showinfo("Notice", "Successfully create group: " + group_name)
 
-		elif not group_name:
-			tkinter.messagebox.showinfo("Warning", "Please enter a name for the group.")
+            self.members = []
+            self.list_members.delete(0, END)
+            self.groupInput.delete(0, 'end')
+            self.member_entry.delete(0, 'end')
 
-		elif group_name:
-			if self.member_entry.get():
-				self.members.append(self.member_entry.get())
+    def back(self, gui):
+        # parameter: gui -> The GUI that is being used.
 
-			response = gui.getClient().createGroup(group_name, self.members)
+        """
+        Empties the textbox before heading back to the starting page.
+        """
 
-			if response == "SUCCESS":
-				tk.messagebox.showinfo("Notice", "Successfully create group: " + group_name)
+        self.members = []
+        self.list_members.delete(0, END)
+        self.groupInput.delete(0, 'end')
+        self.member_entry.delete(0, 'end')
 
-			self.members = []
-			self.list_members.delete(0, END)
-			self.groupInput.delete(0, 'end')
-			self.member_entry.delete(0, 'end')
-
-	def back(self, gui):
-		#parameter: gui -> The GUI that is being used.
-
-		"""
-		Empties the textbox before heading back to the starting page.
-		"""
-
-		self.members = []
-		self.list_members.delete(0, END)
-		self.groupInput.delete(0, 'end')
-		self.member_entry.delete(0, 'end')
-
-		"""
-		Goes back to the starting page.
-		"""
-		gui.show_frame(menu.MenuPage)
+        """
+        Goes back to the starting page.
+        """
+        gui.show_frame(menu.MenuPage)
