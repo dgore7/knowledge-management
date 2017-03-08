@@ -95,11 +95,11 @@ class TestDB(TestCase):
         for user in unames:
             self.assertIn((gid, user), users_in_group)
 
-    def test_add_user_to_group(self):
-        self.fail()
-
-    def test_delete_user_from_group(self):
-        self.fail()
+    # def test_add_user_to_group(self):
+    #     self.fail()
+    #
+    # def test_delete_user_from_group(self):
+    #     self.fail()
 
     def test_get_personal_repo_id(self):
         self.db.register(self.uname, self.pword)
