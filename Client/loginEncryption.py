@@ -61,20 +61,17 @@ class LoginEncoding:
 		usernameSalt = username
 
 		# adds to the username to make a more secure salt 
-		salt = usernameSalt + 'This is CSC 376'
+		salt = (usernameSalt + 'This is CSC 376').encode(encoding='UTF-8')
 
 		# store randomSalt with user login info - each user has own random salt
 		randomSalt = os.urandom(32)
-		finalSalt = randomSalt + salt 
+#		finalSalt = randomSalt + salt
 		iterations = 22000
 
 		hex = hashlib.pbkdf2_hmac('sha512', password, salt, iterations, 128)
 		hashHex = binascii.hexlify(hex)
 
 		return hashHex
-		
-
-a = LoginEncoding("jessicahua95", "hello")
 
 print(a.getUsername())
 print(a.getPassword())

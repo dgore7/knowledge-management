@@ -9,7 +9,7 @@ import codecs
 import ssl
 from Client import auth_client
 from Client.client_c import client_api
-
+from Client import loginEncryption
 
 # import OpenSSL
 
@@ -75,7 +75,10 @@ class Client:
             print("Failled")
             return
 
+        # username = loginEncryption.LoginEncoding.loginEncryption(username)
+        # password = loginEncryption.LoginEncoding.passwordHashing(username, password)
         login_info = "username:" + username + ";" + "password:" + password
+
 
         print(login_info)
 

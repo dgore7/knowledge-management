@@ -15,6 +15,8 @@
 # https://github.com/ArnaudRemi/spatssh/blob/5ab23f8e38bfb638560500fe81333c57622686d3/spatssh/usr/share/spatssh/Client.py
 # Paramiko
 #https://github.com/JasonDean-1/TestAutomation/blob/5eff85e2f45170114d327a1cefe020e2d6dc304f/demo_simple.py
+# https://github.com/beefjerky/new_airflow/blob/6cb785c8a97829833db5293ad3458dd16fcbf68c/airflow/api/auth/backend/kerberos_auth.py
+#https://github.com/modauthgssapi/mod_auth_gssapi/tree/912738edbf248c9d9c2960cd4ff1daaa855e6c7e
 import sys
 import hashlib
 import tkinter
@@ -23,6 +25,7 @@ import paramiko
 from Server.models import db
 
 from Client import gui
+
 
 
 
