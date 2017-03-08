@@ -119,7 +119,7 @@ class Client:
             return 0
 
     def createGroup(self, group, members):
-        connection = self.connect()
+        connection = self.sock
 
         connection.send("create_group".encode())
 
@@ -150,9 +150,9 @@ class Client:
         return "SUCCESS"
 
     def addMember(self, member_name):
-        connection = self.connect()
+        connection = self.sock
 
-        connection.send("add".encode())
+        connection.send("addMemGrp".encode())
         status_code = connection.recv(2)
 
         if status_code.decode() != "OK":
@@ -166,9 +166,9 @@ class Client:
         return "SUCCESS"
 
     def removeMember(self, member_name):
-        connection = self.connect()
+        connection = self.sock
 
-        connection.send("remove".encode())
+        connection.send("removeMemGrp".encode())
 
         status_code = connection.recv(2)
 
@@ -266,7 +266,7 @@ class Client:
         # connection.close()
 
     def download(self, filename):
-        connection = self.connect()
+        connection = self.sock
         connection.send("download".encode())
 
         status_code = connection.recv(2)
@@ -304,7 +304,7 @@ class Client:
         print(keywords)
 
     def delete(self, filename):
-        connection = self.connect()
+        connection = self.sock
         connection.send("delete".encode())
 
         status_code = connection.recv(2)
@@ -328,7 +328,7 @@ class Client:
         return status
 
     def close_socket(self):
-        connection = self.connect()
+        connection = self.sock
         connection.close()
 
     def retrieve(self, filename):
