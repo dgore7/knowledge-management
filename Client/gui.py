@@ -12,8 +12,7 @@ from Client import upload
 from Client import retrieve
 from Client import search
 from Client import delete
-
-from Client.client import Client
+from Client import client
 
 
 class GUI(tk.Tk):

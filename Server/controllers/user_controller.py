@@ -20,8 +20,11 @@ def register_user(register_info):
     password = register_info['password']
     print("Leaving RegisterHandler")
     if db.register(username, password):
-        os.mkdir(
+        os.makedirs(
             os.path.normpath(
                 os.path.join(
                     os.getcwd(),
                     'FILE_REPO', username + '_personal_repo')))
+        return True
+    else:
+        return False
