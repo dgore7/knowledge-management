@@ -147,7 +147,7 @@ class Client:
     def addMember(self, member_name):
         connection = self.sock
 
-        connection.send("add".encode())
+        connection.send("addMemGrp".encode())
         status_code = connection.recv(2)
 
         if status_code.decode() != "OK":
@@ -163,7 +163,7 @@ class Client:
     def removeMember(self, member_name):
         connection = self.sock
 
-        connection.send("remove".encode())
+        connection.send("removeMemGrp".encode())
 
         status_code = connection.recv(2)
 
