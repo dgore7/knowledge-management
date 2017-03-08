@@ -75,6 +75,14 @@ class RequestHandler(threading.Thread):
                         print("Deleting file: " + msg)
                         f_ctrlr.delete_file(self.connection, self.parse_request(msg))
 
+                    elif client_option == "addMemGrp":
+                        print("NEED TO IMPLEMENT SERVER SIDE MEMBER ADD TO GROUP HANDLER!")
+                        self.connection.send(FAILURE)
+
+                    elif client_option == "removeMemGrp":
+                        print("NEED TO IMPLEMENT SERVER SIDE MEMBER REMOVE FROM GROUP HANDLER!")
+                        self.connection.send(FAILURE)
+
                     else:
                         self.connection.send(FAILURE)
 
