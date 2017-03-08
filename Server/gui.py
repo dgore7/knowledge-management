@@ -9,6 +9,13 @@ from Server import about_gui
 class GUI(tk.Tk):
 	#Inherites tkinter class
 	def __init__(self):
+		# Sets the certificate settings for the self signed cert
+		self.selfSignedCertCountry = "US"
+		self.selfSignedCertState = "Illinois"
+		self.selfSignedCertLocation = "Chicago"
+		self.selfSignedCertOrganization = "CSC 376 - Distributed Systems"
+		self.selfSignedCertOrganizationU = "Knowledge Mangement Group"
+
 		"""
 		Initializes a tkinter object
 		"""
@@ -59,13 +66,6 @@ class GUI(tk.Tk):
 		Displays the starting frame
 		"""
 		self.show_frame(home_gui.HomePage)
-
-		# Sets the certificate settings for the self signed cert
-		self.selfSignedCertCountry = "US"
-		self.selfSignedCertState = "Illinois"
-		self.selfSignedCertLocation = "Chicago"
-		self.selfSignedCertOrganization = "CSC 376 - Distributed Systems"
-		self.selfSignedCertOrganizationU = "Knowledge Mangement Group"
 
 	def show_frame(self, display):
 		#parameter: display -> The frame that is too be display

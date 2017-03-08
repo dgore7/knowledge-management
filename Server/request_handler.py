@@ -32,7 +32,7 @@ class RequestHandler(threading.Thread):
                         msg = self.connection.recv(1024)
                         login_info = self.parse_request(msg.decode())
                         print("Logging in with: " + msg.decode())
-                        if not u_ctrlr.login_user(login_info):
+                        if not u_ctrlr.login_user(self.connection,login_info):
                             self.connection.send(FAILURE)
                         else:
                             self.connection.send(SUCCESS)
