@@ -62,6 +62,7 @@ class DB:
         self.conn.commit()
 
     def login(self, username, pword):
+
         """
         Attempts to find an entry in the USERS table with the given parameters
 
@@ -78,13 +79,12 @@ class DB:
         # user will either be the one result, or 'None'
         user = cursor.fetchone()
         if user is None:
-            return False
+            return None
         elif user[0] == username:
-            return True
-
+            return user[2]
         # backup catchall if for some reason the returned username != input username
         else:
-            return 0
+            return None
 
     def register(self, username, pword):
         """
@@ -100,8 +100,9 @@ class DB:
         success = False
         c = self.conn.cursor()
         try:
-            c.execute("INSERT INTO GROUPS(groupname, user_created) VALUES(?,?)", (username + " personal_repo", False))
+            c.execute("INSERT INTO GROUPS(groupname, user_created) VALUES(?,?)", (username + "_personal_repo", False))
             gid = c.lastrowid
+            print(type(gid))
             c.execute("INSERT INTO USER(username, password, repo_id) VALUES(?,?,?)", (username, pword, gid))
             c.execute("INSERT INTO USER_GROUP(group_id, username) VALUES(?,?)", (gid, username))
             self.conn.commit()
@@ -166,6 +167,25 @@ class DB:
         except sqlite3.Error as e:
             print('Error in retrieve_repo', e)
 
+    def get_username(self, gid):
+        cursor = self.conn.cursor()
+        try:
+            cursor.execute("SELECT username FROM USER_GROUP WHERE group_id=?",
+                           (gid,))
+            return cursor.fetchone()[0]
+        except sqlite3.Error as e:
+            print('Error in get_username', e)
+
+
+    def repo_name(self, gid):
+        cursor = self.conn.cursor()
+        try:
+            cursor.execute("SELECT groupname FROM GROUPS WHERE id=?",
+                            (gid,))
+            return cursor.fetchone()[0]
+        except sqlite3.Error as e:
+            print('Error in repo_name', e)
+
     def upload(self, fileName, tags, owner, group_id):  # Written by Ayad
         """
         This method inserts data into the database
@@ -184,7 +204,7 @@ class DB:
                                   (fileName, group_id, tag))
             self.conn.commit()
         except sqlite3.Error as e:
-            print("An Error Occured: " + e.args[0])
+            print("An Error Occured in upload: " + str(e.args) + "\n\t\t all vars = " + str(locals()))
 
     def get_personal_repo_id(self, uname):
         return self.conn.execute('SELECT repo_id FROM USER WHERE username=?', (uname,)).fetchone()[0]

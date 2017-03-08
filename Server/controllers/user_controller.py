@@ -1,16 +1,19 @@
 from . import db
+from . import SUCCESS, FAILURE
+import os
 
-
-def login_user(login_info):
+def login_user(connection, login_info):
     print("Inside login")
+    print(login_info)
     username = login_info['username']
     password = login_info['password']
-    if db.login(username, password):
-        print("Leaving LoginHandler")
-        return True
+    repo_id = db.login(username, password)
+    if repo_id:
+        connection.send(SUCCESS)
+        connection.send(str(repo_id).encode())
     else:
-        print("Leaving LoginHandler")
-        return False
+        connection.send(FAILURE)
+
 
 
 def register_user(register_info):
@@ -18,4 +21,12 @@ def register_user(register_info):
     username = register_info['username']
     password = register_info['password']
     print("Leaving RegisterHandler")
-    return db.register(username, password)
+    if db.register(username, password):
+        os.mkdir(
+            os.path.normpath(
+                os.path.join(
+                    os.getcwd(),
+                    'FILE_REPO', username + '_personal_repo')))
+
+
+
