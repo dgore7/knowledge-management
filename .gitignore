@@ -95,3 +95,7 @@ ENV/
 .ropeproject
 
 Client/client.py
+
+KnowledgeManagement.crt
+
+KnowledgeManagement.key

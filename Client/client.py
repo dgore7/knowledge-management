@@ -9,9 +9,8 @@ from Client import client_c
 from Client.client_c import client_api
 import codecs
 import ssl
-# from Client import auth_client
 from Client.client_c import client_api
-
+from Client.loginEncryption import LoginEncoding
 from Client import g_personal_repoid, SOCKET_EOF
 from socket import error as SocketError
 
@@ -71,6 +70,7 @@ class Client:
             print("Nothing to disconnect!")
 
     def login(self, username, password):
+        userEncrypt = LoginEncoding(username,password)
         connection = self.sock
         connection.send("login".encode())
         print("Hello")
@@ -80,8 +80,8 @@ class Client:
             print("Failled")
             return 0
 
-        # username = loginEncryption.LoginEncoding.loginEncryption(username)
-        # password = loginEncryption.LoginEncoding.passwordHashing(username, password)
+        # username = str(userEncrypt.loginEncryption(username))
+        #password = userEncrypt.passwordHashing(username, password)
         login_info = "username:" + username + ";" + "password:" + password
 
 
