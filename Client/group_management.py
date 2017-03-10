@@ -43,7 +43,6 @@ class GroupManagementPage(tk.Frame):
         backButton = tk.Button(bottom, text="Back", command=lambda: self.back(gui))
         backButton.pack()
 
-
     def addMember(self, gui, member_name):
         if member_name == "":
             tkinter.messagebox.showinfo("Warning", "Please enter the name of a member to add.")
@@ -62,18 +61,17 @@ class GroupManagementPage(tk.Frame):
                 self.list_members.insert(END, member_name)
             self.memberEntry.delete(0, 'end')
 
-
     def removeMember(self, gui):
         member_name = self.list_members.get(ACTIVE)
 
         if member_name:
-            result = tkinter.messagebox.askyesno("Remove Member", "Do you want to remove " + member_name + " from the group?")
+            result = tkinter.messagebox.askyesno("Remove Member",
+                                                 "Do you want to remove " + member_name + " from the group?")
             if result:
                 response = gui.getClient().removeMember(member_name)
                 if response == "SUCCESS":
                     tkinter.messagebox.showinfo("Notice", "Successfully removed " + member_name)
                     self.list_members.delete(ACTIVE)
-
 
     def back(self, gui):
         self.memberEntry.delete(0, 'end')

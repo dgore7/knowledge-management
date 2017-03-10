@@ -18,6 +18,12 @@ class LoginEncoding:
     def getPassword(self):
         return self.password
 
+    def getUserKey(self):
+        return self.key
+
+    def getPasswordSalt(self):
+        return self.salt
+
     def loginEncryption(self, username):
         # block size for cipher object (always 16 for AES)
         blockSize = 16
@@ -31,28 +37,36 @@ class LoginEncoding:
         encodeAES = lambda c, s: base64.b64encode(c.encrypt(padTheText(s)))
 
         # creates a random secret key
-        secretKey = os.urandom(blockSize)
+        self.key = os.urandom(blockSize)
 
         # cipher object using the secrey key
-        cipher = AES.new(secretKey)
+        cipher = AES.new(self.key)
 
         # encrypts username
         encodedUsername = encodeAES(cipher, username)
 
         return encodedUsername
 
-    # def loginDecryption(self, encodedUsername):
+    def loginDecryption(self, key, encodedUsername):
+        mode = 'utf-8'
 
-    # 	# padding = "{"
+        padding = "{"
 
-    # 	decodeAES = lambda c, e: c.decrypt(base64.b64decode(e)).rstrip(padding)
+        blockSize = 16
 
-    # 	cipher = AES.new(secretkey)
+        padTheText = lambda s: s + (blockSize - len(s) % blockSize) * padding
 
-    # 	decodedUsername = decodeAES(cipher, encodedUsername)
+        decodeAES = lambda c, e: c.decrypt(base64.b64decode(e))
 
-    # 	print(decodedUsername)
+        cipher = AES.new(key)
 
+        decodedUsername = decodeAES(cipher, encodedUsername)
+
+        decodedUsername = str(decodedUsername, mode)
+
+        decodedUsername = decodedUsername.rstrip(padding)
+
+        return decodedUsername
 
     # call this when user is registering and creating their password
     def passwordHashing(self, username, password):
@@ -62,12 +76,24 @@ class LoginEncoding:
         # adds to the username to make a more secure salt
         salt = usernameSalt + 'This is CSC 376'
 
+        salt = str.encode(salt)
         # store randomSalt with user login info - each user has own random salt
         randomSalt = os.urandom(32)
+
         finalSalt = randomSalt + salt
+
+        self.salt = finalSalt
+
         iterations = 22000
 
-        hex = hashlib.pbkdf2_hmac('sha512', password, salt, iterations, 128)
+        password = str.encode(password)
+
+        hex = hashlib.pbkdf2_hmac(hash_name='sha256',
+                                  password=password,
+                                  salt=finalSalt,
+                                  iterations=iterations,
+                                  dklen=128)
+
         hashHex = binascii.hexlify(hex)
 
         return hashHex
@@ -76,4 +102,5 @@ class LoginEncoding:
 a = LoginEncoding("jessicahua95", "hello")
 
 print(a.getUsername())
+print(a.loginDecryption(a.getUserKey(), a.getUsername()))
 print(a.getPassword())

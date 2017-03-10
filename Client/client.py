@@ -5,15 +5,14 @@ import time
 
 import pickle
 
+from Client import client_c
 from Client.client_c import client_api
 import codecs
 import ssl
 # from Client import auth_client
 from Client.client_c import client_api
 from Client import g_personal_repoid, SOCKET_EOF
-
-
-# import OpenSSL
+from socket import error as SocketError
 
 
 class Client:
@@ -59,9 +58,13 @@ class Client:
 
     def disconnect(self):
         if self.connected:
-            self.sock.shutdown(socket.SHUT_RDWR)
-            self.sock.close()
-            self.connected = False
+            try:
+                self.sock.shutdown(socket.SHUT_WR)
+                self.sock.close()
+                self.connected = False
+            except SocketError as e:
+                print("Server must have disconnected first!")
+
             print("Disconnection successful!")
         else:
             print("Nothing to disconnect!")
@@ -97,6 +100,11 @@ class Client:
         connection = self.sock
         connection.send("register".encode())
 
+        # credentials = LoginEncoding(username, password)
+        # username = credentials.getUsername()
+        # password = credentials.getPassword()
+        # key = credentials.getKey()
+
         register_info = "username:" + username + ";" + "password:" + password
         connection.send(register_info.encode())
         server_response = connection.recv(2)
@@ -106,7 +114,7 @@ class Client:
             return 0
 
     def createGroup(self, group, members):
-        connection = self.connect()
+        connection = self.sock
 
         connection.send("create_group".encode())
 
@@ -138,9 +146,9 @@ class Client:
         return "SUCCESS"
 
     def addMember(self, member_name):
-        connection = self.connect()
+        connection = self.sock
 
-        connection.send("add".encode())
+        connection.send("addMemGrp".encode())
         status_code = connection.recv(2)
 
         if status_code.decode() != "OK":
@@ -154,9 +162,9 @@ class Client:
         return "SUCCESS"
 
     def removeMember(self, member_name):
-        connection = self.connect()
+        connection = self.sock
 
-        connection.send("remove".encode())
+        connection.send("removeMemGrp".encode())
 
         status_code = connection.recv(2)
 
@@ -244,7 +252,7 @@ class Client:
         #
         # status_code = connection.recv(7)
 
-        file = open(filename,"rb")
+        file = open(filename, "rb")
 
         for line in file:
             print(line)
@@ -254,9 +262,8 @@ class Client:
         print("Closing file")
         # connection.close()
 
-
     def download(self, filename):
-        connection = self.connect()
+        connection = self.sock
         connection.send("download".encode())
 
         status_code = connection.recv(2)
@@ -294,7 +301,7 @@ class Client:
         print(keywords)
 
     def delete(self, filename):
-        connection = self.connect()
+        connection = self.sock
         connection.send("delete".encode())
 
         status_code = connection.recv(2)
@@ -375,11 +382,12 @@ class Client:
         return True
         # sock.close()
 
-    if __name__ == '__main__':
-        print("enter a query:")
-        port = 8001 if len(sys.argv) != 2 else sys.argv[1]
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.connect(("localhost", int(port)))
-        message = "query:" + sys.stdin.readline()
-        sock.send(message.encode())
-        # sock.close()
+
+if __name__ == '__main__':
+    print("enter a query:")
+    port = 8001 if len(sys.argv) != 2 else sys.argv[1]
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.connect(("localhost", int(port)))
+    message = "query:" + sys.stdin.readline()
+    sock.send(message.encode())
+    # sock.close()
