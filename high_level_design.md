@@ -38,6 +38,10 @@
 
 ## Wireframes of End Goal (Subject to Change):
 
-
+## TODO
+* File Version Control
+* Search caching
+* Tag sorting/completion
+   * based on usage/frequency
 
 
