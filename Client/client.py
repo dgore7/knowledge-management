@@ -5,10 +5,13 @@ import time
 
 import pickle
 
-from . import SUCCESS, FAILURE
 import codecs
 import ssl
-#import OpenSSL
+from Client import auth_client
+from Client.client_c import client_api
+
+
+# import OpenSSL
 
 
 class Client:
@@ -25,7 +28,8 @@ class Client:
         # message = "query:" + sys.stdin.readline()
         # self.sock.send(message.encode())
 
-    def connect(self, cert_file_path = os.path.normpath(os.path.join(os.getcwd(),'../KnowledgeManagement.crt')), host='localhost', port=8001):
+    def connect(self, cert_file_path=os.path.normpath(os.path.join(os.getcwd(), '../KnowledgeManagement.crt')),
+                host='localhost', port=8001):
         # parameter: host -> The desired host for the new connection.
         # parameter: port -> The desired port for the new connection.
         # parameter: use_ssl -> Can be set to False to disable SSL for the client connecting
@@ -67,8 +71,7 @@ class Client:
         status_code = connection.recv(2)
         print("MSG Replayed")
         decoded_status_code = status_code.decode()
-
-        if decoded_status_code != SUCCESS:
+        if decoded_status_code != client_api.SUCCESS:
             print("Failled")
             return
 
@@ -77,10 +80,10 @@ class Client:
         print(login_info)
 
         connection.send(login_info.encode())
-        #self.sock.send(login_info.encode())
-        #connection.close()
-        server_response = connection.recv(2).decode() # "login_response|bad" or "login_response|good"
-        if server_response == SUCCESS:
+        # self.sock.send(login_info.encode())
+        # connection.close()
+        server_response = connection.recv(2).decode()  # "login_response|bad" or "login_response|good"
+        if server_response == client_api.SUCCESS:
             return 1
         else:
             return 0
@@ -94,22 +97,22 @@ class Client:
         register_info = "username:" + username + ";" + "password:" + password
         connection.send(register_info.encode())
         server_response = connection.recv().decode()
-        if server_response == SUCCESS:
+        if server_response == client_api.SUCCESS:
             return 1
         else:
             return 0
 
     def upload(self, filename, tags, notes):
         connection = self.sock
-        
+
         connection.send("upload".encode())
 
         status_code = connection.recv(1024).decode()
 
-        if status_code != SUCCESS:
+        if status_code != client_api.SUCCESS:
             print("failed")
             return
-        msg = ['filename:',filename, ';']
+        msg = ['filename:', filename, ';']
         msg.extend(['notes:', notes, ';'])
         msg.extend(['tags:'].extend(tag + ',' for tag in tags))
         msg = ''.join(msg)
@@ -124,14 +127,14 @@ class Client:
             file_exist = False
 
         file = open(filename, "rb")
-        #file = codecs.open(filename, "rb", "utf-8")
+        # file = codecs.open(filename, "rb", "utf-8")
         for line in file:
-            #sys.stdout.write(line.decode())
+            # sys.stdout.write(line.decode())
             connection.send(line)
 
         file.close()
         print("Closing file")
-        #connection.close()
+        # connection.close()
 
     def retrieve(self, filename):
         connection = self.sock
@@ -139,7 +142,7 @@ class Client:
 
         connection.send(filename.encode())
         print(filename)
-        #sock.close()
+        # sock.close()
 
     def retrieve_repo(self, group_id=None, username=None):
         connection = self.sock
@@ -168,21 +171,30 @@ class Client:
         connection = self.sock
         connection.send("search".encode())
 
-        #Maybe can use query statement here
+        # Maybe can use query statement here
         connection.send(filename.encode())
         print(filename)
-        #sock.close()
+        # sock.close()
 
     def delete(self, filename, group_id):
         connection = self.sock
         connection.send("delete".encode())
-        if not connection.recv(2).decode() == SUCCESS:
+        if not connection.recv(2).decode() == client_api.SUCCESS:
             return False
-        msg = 'filename:' +  filename + ';group_id:' + group_id
+        msg = 'filename:' + filename + ';group_id:' + group_id
         connection.send(msg.encode())
         result = connection.recv(1024).decode()
-        if result != SUCCESS:
+        if result != client_api.SUCCESS:
             print(result)
             return False
         return True
-        #sock.close()
+        # sock.close()
+
+    if __name__ == '__main__':
+        print("enter a query:")
+        port = 8001 if len(sys.argv) != 2 else sys.argv[1]
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect(("localhost", int(port)))
+        message = "query:" + sys.stdin.readline()
+        sock.send(message.encode())
+        # sock.close()

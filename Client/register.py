@@ -3,9 +3,10 @@ import tkinter as tk
 from tkinter import TOP, E
 import tkinter.messagebox
 
-import gui
-import start
-import menu
+from Client import gui
+from Client import start
+from Client import menu
+from Client import auth_client
 
 import re
 
@@ -77,7 +78,7 @@ class RegisterPage(tk.Frame):
 
 	def register(self, gui, username, password):
 		if( username and password ):
-			if (len(password) < 12):
+			if (len(password) < 8):
 				"""
                 Displays a pop up if username is not available.
                 Clears both textboxes to enter new information.
