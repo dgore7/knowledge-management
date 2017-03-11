@@ -1,4 +1,7 @@
 import threading
+
+import struct
+
 from Server import connections
 from socket import SHUT_WR, error as SocketError, errno as SocketErrno
 
@@ -32,16 +35,23 @@ class RequestHandler(threading.Thread):
                         msg = self.connection.recv(1024)
                         login_info = self.parse_request(msg.decode())
                         print("Logging in with: " + msg.decode())
-                        if not u_ctrlr.login_user(self.connection,login_info):
+                        repo_id = u_ctrlr.login_user(self.connection, login_info)
+                        if not repo_id:
                             self.connection.send(FAILURE)
                         else:
                             self.connection.send(SUCCESS)
+                            packed_repo_id = struct.pack('<L', repo_id)
+                            self.connection.send(packed_repo_id)
 
                     elif client_option == "register":
                         msg = self.connection.recv(1024).decode()
                         print("Registering user: " + msg)
-                        if u_ctrlr.register_user(self.parse_request(msg)):
+                        repo_id = u_ctrlr.register_user(self.parse_request(msg))
+                        print(repo_id)
+                        if repo_id:
                             self.connection.send(SUCCESS)
+                            packed_repo_id = struct.pack('<L', repo_id)
+                            self.connection.send(packed_repo_id)
                             print("Successfully registered user: " + msg)
                         else:
                             self.connection.send(FAILURE)
@@ -51,6 +61,7 @@ class RequestHandler(threading.Thread):
                         self.connection.send(SUCCESS)
                         msg = self.connection.recv(1024).decode()
                         print("Received: " + msg)
+                        msg = self.parse_request(msg)
                         f_ctrlr.upload_file(self.connection, msg)
 
                     elif client_option == "retrieve":
