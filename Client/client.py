@@ -1,7 +1,7 @@
 import sys
 import socket
 import os
-import time
+import struct
 
 import pickle
 
@@ -11,7 +11,7 @@ import codecs
 import ssl
 # from Client import auth_client
 from Client.client_c import client_api
-from Client import g_personal_repoid, SOCKET_EOF
+from Client import repoids, SOCKET_EOF
 from socket import error as SocketError
 
 
@@ -86,10 +86,15 @@ class Client:
         connection.send(login_info.encode())
         # self.sock.send(login_info.encode())
         # connection.close()
-        server_response = connection.recv(2)  # "login_response|bad" or "login_response|good"
+        server_response = connection.recv(2)  # SUCCESS or FAILURE
         print(server_response.decode())
         if server_response == client_api.SUCCESS:
-            g_personal_repoid = connection.recv(32).decode()
+            repoids.clear()
+            packed_repo_id = connection.recv(4)
+            repo_id_tup = struct.unpack('<L', packed_repo_id)
+            repo_id = repo_id_tup[0]
+            repoids.append(repo_id)
+            print(repo_id)
             return 1
         else:
             return 0
@@ -109,6 +114,12 @@ class Client:
         connection.send(register_info.encode())
         server_response = connection.recv(2)
         if server_response == client_api.SUCCESS:
+            repoids.clear()
+            packed_repo_id = connection.recv(4)
+            repo_id_tup = struct.unpack('<L', packed_repo_id)
+            repo_id = repo_id_tup[0]
+            repoids.append(repo_id)
+            print(repo_id)
             return 1
         else:
             return 0
@@ -180,6 +191,14 @@ class Client:
 
 
     def upload(self, filename, tags, notes, repo):
+        try:
+            file_stat = os.stat(filename)
+            file_exist = True
+        except FileNotFoundError:
+            file_exist = False
+            return 0
+        mod_time = str(file_stat.st_mtime)
+
         connection = self.sock
 
         connection.send("upload".encode())
@@ -188,22 +207,24 @@ class Client:
 
         if status_code != client_api.SUCCESS:
             print("failed")
-            return
+            return False
         msg = ['fname:', filename.split('/')[-1], ';']
         msg.extend(['notes:', notes, ';'])
         print(tags)
+        msg.extend(['mod_time:', mod_time, ';'])
         msg.extend(['gid:', repo, ';'])
         tags_buffer = ['tags:']
         tags_buffer.extend(tag + ',' for tag in tags)
-        if tags:
+        if tags: # remove last comma
             tags_buffer[-1] = tags_buffer[-1][:-1]
         msg.extend(tags_buffer)
+        print(msg)
         msg = ''.join(msg)
         connection.send(msg.encode())
         status = connection.recv(2)
         if status != client_api.SUCCESS:
             print('ERROR')
-            return
+            return False
         # try:
         #     file_stat = os.stat(filename)
         #     file_exist = True
@@ -260,6 +281,7 @@ class Client:
         connection.send(SOCKET_EOF)
         file.close()
         print("Closing file")
+        return True
         # connection.close()
 
     def download(self, filename):

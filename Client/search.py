@@ -87,10 +87,10 @@ class SearchPage(tk.Frame):
         self.tree = ttk.Treeview(resultsFrame)
 
         self.tree["columns"] = ("one", "two")
-        self.tree.column(column="#0", width=100)
+        self.tree.column("#0", width=100)
         self.tree.column("one", width=100)
         self.tree.column("two", width=100)
-        self.tree.heading(column="#0", text="File Name")
+        self.tree.heading("#0", text="File Name")
         self.tree.heading("one", text="File Size")
         self.tree.heading("two", text="Date")
 

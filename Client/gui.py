@@ -1,4 +1,4 @@
-#from client import Client
+# from client import Client
 
 import tkinter as tk
 
@@ -79,8 +79,8 @@ class GUI(tk.Tk):
 
 
 if __name__ == '__main__':
-	user = client.Client()
-	app = GUI(user)
-	app.geometry("600x500")
-	app.mainloop()
-	user.disconnect()
+    user = client.Client()
+    app = GUI(user)
+    app.geometry("600x500")
+    app.mainloop()
+    user.disconnect()
