@@ -13,6 +13,8 @@ import ssl
 from Client.client_c import client_api
 from Client import repoids, SOCKET_EOF
 from socket import error as SocketError
+import loginEncryption
+import loginDecryption
 
 
 class Client:
@@ -79,7 +81,21 @@ class Client:
             print("Failled")
             return 0
 
-        login_info = "username:" + username + ";" + "password:" + password
+        login = loginDecryption.LoginDecoding(username)
+        username = login.getUsername()
+
+        # TODO: Need to get the hashed password and salt from the database with this username
+        # If there is no entry with this username, it means there is no account
+        login.setHashedPassword("hashedPasswordFromDatabase")
+        login.setSalt("saltFromDatabase")
+        login.setAttemptedPasswordHash(password)
+
+        password = login.getAttemptedPasswordHash()
+        dateTime = login.getDateTime()
+
+        isPasswordRight = login.checkPassword()
+
+        login_info = "username:" + username + ";" + "password:" + password + ";" + "dateTime: " + dateTime
 
         # print(login_info)
 
@@ -110,7 +126,16 @@ class Client:
         # password = credentials.getPassword()
         # key = credentials.getKey()
 
-        register_info = "username:" + username + ";" + "password:" + password
+        register = loginEncryption.LoginEncoding()
+        register.setUsername(username)
+        register.setPassword(password)
+        username = register.getUsername()
+        password = register.getPassword()
+        passwordSalt = register.getPasswordSalt()
+        dateTime = register.getDateTime()
+
+        register_info = "username:" + username + ";" + "password:" + password + ";" + "passwordSalt:" + passwordSalt
+        register_info = register_info + ";" + "dateTime:" + dateTime
         connection.send(register_info.encode())
         server_response = connection.recv(2)
         if server_response == client_api.SUCCESS:
