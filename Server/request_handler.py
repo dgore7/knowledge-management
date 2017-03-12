@@ -72,8 +72,8 @@ class RequestHandler(threading.Thread):
                     elif client_option == "retrieve_repo":
                         self.connection.send(SUCCESS)
                         msg = self.connection.recv(1024).decode()
-                        print("Retrieving File: " + msg)
-                        f_ctrlr.retrieve_file(self.parse_request(msg))
+                        print("Retrieving Repo: " + msg)
+                        f_ctrlr.retrieve_repo(self.connection, self.parse_request(msg))
 
                     elif client_option == "search":
                         msg = self.connection.recv(1024)

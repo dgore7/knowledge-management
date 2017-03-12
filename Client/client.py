@@ -358,25 +358,25 @@ class Client:
         print(filename)
         # sock.close()
 
-    def retrieve_repo(self, group_id=None, username=None):
+    def retrieve_repo(self, group_ids=None):
         connection = self.sock
-        if not group_id and not username:
+        if not group_ids:
             raise RuntimeError('Arguements required')
-        connection.send("retrieve repo".encode())
-        result = connection.recv(1024).decode()
+        connection.send("retrieve_repo".encode())
+        result = connection.recv(2)
         if not result == client_api.SUCCESS:
             print(result)
             return []
-        if group_id:
-            connection.send(str(group_id).encode())
-        elif username:
-            connection.send(username.encode())
+        msg = 'group_ids:' + ','.join(str(gid) for gid in group_ids)
+        msg = msg.encode()
+        connection.send(msg)
+        # python string builder pattern
         result = []
         while True:
             bytes_received = connection.recv(1024)
             if bytes_received:
                 result.append(bytes_received)
-            else:
+            else: # use socket eof
                 break
         result = b''.join(result)
         return pickle.loads(result)

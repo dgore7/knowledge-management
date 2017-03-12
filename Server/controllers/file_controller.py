@@ -87,15 +87,12 @@ def retrieve_file(connection, filename):
 def retrieve_repo(connection, query):
     if 'group_id' not in query:
         connection.send(FAILURE)
-    try:
-        group_id = query['group_id']
-    except KeyError as e:
-        msg = ','.join(arg for arg in e.args).encode()
-        connection.send(FAILURE + msg)
-        return
+    group_ids = query['group_ids']
     connection.send(SUCCESS)
-    repo = db.retrieve_repo(group_id)
-    pickled_repo = pickle.dumps(repo)
+    result = []
+    for group_id in group_ids:
+        result.extend(db.retrieve_repo(int(group_id)))
+    pickled_repo = pickle.dumps(result)
     connection.send(pickled_repo)
 
 

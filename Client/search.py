@@ -4,7 +4,7 @@ import tkinter.messagebox
 
 from tkinter import TOP, E
 
-from Client import menu
+from Client import menu, PERSONAL, GROUPS, ALL, repoids
 
 
 class SearchPage(tk.Frame):
@@ -12,6 +12,9 @@ class SearchPage(tk.Frame):
         tk.Frame.__init__(self, frame)
 
         self.filename = None
+
+        self.gui = gui
+        self.client = gui.getClient()
 
         label = tk.Label(self, text="Search")
         label.pack(side=TOP)
@@ -241,6 +244,7 @@ class SearchPage(tk.Frame):
                         self.tree.reattach(child, "", 0)
 
     def display_self(self):
+        self.getUpdates(PERSONAL)
         print(self.tree.get_children())
         print(self.rows)
         for child in self.rows:
@@ -294,7 +298,18 @@ class SearchPage(tk.Frame):
         else:
             print("Error")
 
-    def getUpdates(self):
+    def getUpdates(self, group_type):
+        if group_type is PERSONAL:
+            result = self.client.retrieve_repo([repoids[0]])
+            print(result)
+        elif group_type is GROUPS:
+            pass
+        elif group_type is ALL:
+            pass
+        else:
+            # Raise an exception
+            pass
+
         for child in self.tree.get_children():
             self.tree.delete(child)
 
