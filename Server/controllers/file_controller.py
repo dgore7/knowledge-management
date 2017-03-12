@@ -1,4 +1,4 @@
-
+from Server import verboseFunc
 from . import db, SOCKET_EOF
 import os
 
@@ -6,7 +6,7 @@ import os
 import pickle
 from . import db, SUCCESS, FAILURE
 
-
+@verboseFunc
 def upload_file(connection, upload_info):
     """
     upload a user's file to the database
@@ -16,13 +16,14 @@ def upload_file(connection, upload_info):
     :param upload_info: file info (i.e. name and tags)
     :type upload_info: dict
     """
-    print("Inside Upload Handler")
 
     filename = upload_info['fname']
     tags = [tag.strip() for tag in upload_info['tags'].split(',')]
     group_id = int(upload_info['gid'])
+    notes = upload_info['notes']
+    mod_time = float(upload_info['mod_time'])
     owner = db.get_username(group_id)
-    db.upload(filename, tags, owner, group_id)
+    db.upload(filename, tags, owner, group_id, notes, mod_time)
 
     if  db.__contains__(filename,owner):
         connection.send(FAILURE + "ERROR: file already exists".encode())
@@ -31,7 +32,7 @@ def upload_file(connection, upload_info):
     prefix = 'FILE_REPO'
     repo_name = db.repo_name(group_id)
     if not repo_name:
-        print('FUCK')
+        print('REPO NAME ERROR')
         return
     file = open(os.path.normpath(
         os.path.join(
@@ -64,8 +65,9 @@ def upload_file(connection, upload_info):
 
     file.close()
     print("Closed File")
-    print("Leaving Upload Handler")
 
+
+@verboseFunc
 def retrieve_file(connection, filename):
 
     print("Inside RetrieveHandler")
@@ -81,6 +83,7 @@ def retrieve_file(connection, filename):
     print("Leaving RetrieveHandler")
 
 
+@verboseFunc
 def retrieve_repo(connection, query):
     if 'group_id' not in query:
         connection.send(FAILURE)
@@ -96,10 +99,13 @@ def retrieve_repo(connection, query):
     connection.send(pickled_repo)
 
 
+@verboseFunc
 def retrieve_personal_repo(connection, uname):
     repo_id = db.get_personal_repo_id(uname)
     retrieve_repo(connection, {'group_id': repo_id})
 
+
+@verboseFunc
 def delete_file(connection, query):
     print("Inside DeleteHandler")
     if 'filename' not in query or 'group_id' not in query:

@@ -1,4 +1,4 @@
-#from client import Client
+# from client import Client
 
 import tkinter as tk
 
@@ -12,8 +12,7 @@ from Client import upload
 from Client import retrieve
 from Client import search
 from Client import delete
-
-from Client.client import Client
+from Client import client
 
 
 class GUI(tk.Tk):
@@ -80,7 +79,7 @@ class GUI(tk.Tk):
 
 
 if __name__ == '__main__':
-    user = Client()
+    user = client.Client()
     app = GUI(user)
     app.geometry("600x500")
     app.mainloop()
