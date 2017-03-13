@@ -1,6 +1,6 @@
 import tkinter as tk
 
-from tkinter import RIGHT, END, ACTIVE
+from tkinter import RIGHT, END, ACTIVE, StringVar
 import tkinter.messagebox
 
 from Client import menu
@@ -11,6 +11,20 @@ class GroupManagementPage(tk.Frame):
         tk.Frame.__init__(self, frame)
         label = tk.Label(self, text="Group Management")
         label.pack()
+
+        # list_groups : list
+        # drop_down = tk.OptionMenu(self, *[tup[1] for tup in list_groups])
+        # drop_down.pack()
+
+        tuple_groups: list = [("1", "a"), ("2", "b"), ("3", "c")]
+        list_groups = []
+        for group_info in tuple_groups:
+            list_groups.append(group_info[1])
+
+        self.var = StringVar()
+        self.var.set(list_groups[0])
+        drop_down = tk.OptionMenu(self, self.var, *list_groups)
+        drop_down.pack()
 
         top = tk.Frame(self)
         top.pack()
@@ -44,6 +58,7 @@ class GroupManagementPage(tk.Frame):
         backButton.pack()
 
     def addMember(self, gui, member_name):
+        print(self.var.get())
         if member_name == "":
             tkinter.messagebox.showinfo("Warning", "Please enter the name of a member to add.")
 
@@ -62,6 +77,7 @@ class GroupManagementPage(tk.Frame):
             self.memberEntry.delete(0, 'end')
 
     def removeMember(self, gui):
+        print(self.var.get())
         member_name = self.list_members.get(ACTIVE)
 
         if member_name:

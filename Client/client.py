@@ -215,6 +215,7 @@ class Client:
         msg.extend(['notes:', notes, ';'])
         print(tags)
         msg.extend(['mod_time:', mod_time, ';'])
+        ######### Add statements to determine where to upload
         msg.extend(['gid:', repo, ';'])
         tags_buffer = ['tags:']
         tags_buffer.extend(tag + ',' for tag in tags)
