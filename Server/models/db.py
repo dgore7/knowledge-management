@@ -246,6 +246,19 @@ class DB:
     def get_personal_repo_id(self, uname):
         return self.conn.execute('SELECT repo_id FROM USER WHERE username=?', (uname,)).fetchone()[0]
 
+    def get_groups(self, uname):
+        cursor = self.conn.cursor()
+        try:
+            cursor.execute("""SELECT GROUPS.groupname, GROUPS.id FROM
+                              GROUPS INNER JOIN USER_GROUP
+                              ON GROUPS.id = USER_GROUP.group_id
+                              WHERE username = ?
+                            """,
+                            (uname,))
+        except Exception as e:
+            print(e)
+        return cursor.fetchall()
+
     def delete(self, fname, gid):
         """
         Attempts to delete fileName from the FILES table

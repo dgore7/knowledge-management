@@ -63,4 +63,17 @@ def removeMember(connection, member_info):
     print("Done Removing member: " + uname)
 
 
+def retrieve_groups(connection, groups_info):
+    if 'username' not in groups_info:
+        connection.send(FAILURE)
+    username = groups_info['username']
+    result = db.get_groups(username)
+    if result:
+        connection.send(SUCCESS)
+    else:
+        connection.send(FAILURE)
+    result = pickle.dumps(result)
+    connection.send(result)
+
+
 
