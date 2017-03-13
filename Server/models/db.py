@@ -88,6 +88,24 @@ class DB:
         elif user[0] == username:
             return user[5]
 
+    def get_hashinfo(self, username):
+        """
+        Grabs the randomly generated salt from the database
+
+        :param username: string
+        :return: dictionary
+        """
+
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT salt, password FROM USER WHERE username=?", (username,))
+
+        result = cursor.fetchone()
+        salt = result[0]
+        password = result[1]
+        hash_dic = {"salt":salt, "password": password}
+        return hash_dic
+
+
     def register(self, username, pword, sec_question, sec_answer, password_salt):
         """
         Attempts to enter a new username and pword into the USERS table

@@ -1,23 +1,16 @@
-import sys
-import socket
 import os
-import struct
-
 import pickle
-
-from pickle import UnpicklingError
-
-from Client import client_c, SUCCESS, FAILURE, global_username
-from Client.client_c import client_api
-import codecs
+import socket
 import ssl
-from Client.client_c import client_api
-from Client.loginEncryption import LoginEncoding
-#from Client import g_personal_repoid, SOCKET_EOF
-from Client import repoids, SOCKET_EOF
+import struct
+import sys
+from pickle import UnpicklingError
 from socket import error as SocketError
+
+from Client import SUCCESS, FAILURE, global_username
 from Client import loginEncryption
-from Client import loginDecryption
+from Client import repoids, SOCKET_EOF
+from Client.client_c import client_api
 
 
 class Client:
@@ -75,29 +68,10 @@ class Client:
             print("Failled")
             return 0
 
-
-        login = loginDecryption.LoginDecoding(username)
-        username = login.getUsername()
-
-        # TODO: Need to get the hashed password and salt from the database with this username
-        # If there is no entry with this username, it means there is no account
-        login.setHashedPassword("hashedPasswordFromDatabase")
-        login.setSalt("saltFromDatabase")
-        login.setAttemptedPasswordHash(password)
-
-        password = login.getAttemptedPasswordHash()
-       # dateTime = login.getDateTime()
-
-        isPasswordRight = login.checkPassword()
-
         login_info = "username:" + username + ";password:" + password
-
-        # print(login_info)
 
         connection.send(login_info.encode())
 
-        # self.sock.send(login_info.encode())
-        # connection.close()
         server_response = connection.recv(2)  # SUCCESS or FAILURE
         print(server_response.decode())
         if server_response == client_api.SUCCESS:
@@ -123,19 +97,12 @@ class Client:
         connection = self.sock
         connection.send("register".encode())
 
-
-        # credentials = LoginEncoding(username, password)
-        # username = credentials.getUsername()
-        # password = credentials.getPassword()
-        # key = credentials.getKey()
-
         register = loginEncryption.LoginEncoding()
         register.setUsername(username)
         register.setPassword(password)
         username = register.getUsername()
         password = register.getPassword()
         password_salt = str(register.getPasswordSalt())
-        #dateTime = register.getDateTime()
 
         register_info = "username:" + username + ";password:" + password + ";sec_question:" \
                         + sec_question + ";sec_answer:" + sec_answer + ";password_salt:" + password_salt

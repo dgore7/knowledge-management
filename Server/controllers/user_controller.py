@@ -2,14 +2,24 @@ from Server import verboseFunc
 from . import db
 from . import SUCCESS, FAILURE
 import os
+from Server import loginDecryption
 
 
 @verboseFunc
 def login_user(connection, login_info):
     username = login_info['username']
+    login = loginDecryption.LoginDecoding(username)
+    username = login.getUsername()
     password = login_info['password']
-    repo_id = db.login(username, password)
-    return repo_id
+    hash_dic = db.get_hashinfo(username)
+    hashed_pw = hash_dic.get("password")
+    salt = hash_dic.get("salt")
+    login.setSalt(salt)
+    login.setAttemptedPasswordHash(password)
+    login.setHashedPassword(hashed_pw)
+    if login.checkPassword()==True:
+        repo_id = db.login(username, hashed_pw)
+        return repo_id
 
 @verboseFunc
 def register_user(register_info):
