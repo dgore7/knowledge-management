@@ -10,12 +10,9 @@ from Client.client_c import client_api
 import codecs
 import ssl
 from Client.client_c import client_api
-<<<<<<< HEAD
 from Client.loginEncryption import LoginEncoding
-from Client import g_personal_repoid, SOCKET_EOF
-=======
+#from Client import g_personal_repoid, SOCKET_EOF
 from Client import repoids, SOCKET_EOF
->>>>>>> dgore7/master
 from socket import error as SocketError
 
 
@@ -90,7 +87,6 @@ class Client:
             repo_id = repo_id_tup[0]
             repoids.append(repo_id)
             print(repo_id)
-            return 1
         else:
             return 0
 
@@ -98,26 +94,24 @@ class Client:
         """Takes the parameters, hashes the password, encodes the username, and prepares it to be sent to server"""
 
         if self.connected == False:
-            return False
+            return 0
         connection = self.sock
         connection.send("register".encode())
 
-        register_info = "username:" + username + "; password:" + password + "; sec_question" \
-                        + sec_question + "; sec_answer" + sec_answer
+        register_info = "username:" + username + ";password:" + password + ";sec_question:" \
+                        + sec_question + ";sec_answer:" + sec_answer
         connection.send(register_info.encode())
         server_response = connection.recv(2)
         if server_response == client_api.SUCCESS:
-
             repoids.clear()
             packed_repo_id = connection.recv(4)
             repo_id_tup = struct.unpack('<L', packed_repo_id)
             repo_id = repo_id_tup[0]
             repoids.append(repo_id)
             print(repo_id)
-            return True
-
+            return 1
         else:
-            return False
+            return 0
 
     def createGroup(self, group, members):
         """

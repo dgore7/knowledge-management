@@ -85,7 +85,7 @@ class DB:
         if user is None:
             return None
         elif user[0] == username:
-            return user[2]
+            return user[4]
 
     def register(self, username, pword, sec_question, sec_answer):
         """

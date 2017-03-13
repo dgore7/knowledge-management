@@ -114,6 +114,8 @@ class RegisterPage(tk.Frame):
                 # Clear these out since certain parameters are persistent objects?
                 username = ""
                 password = ""
+                sec_question = ""
+                sec_answer = ""
             elif (re.search(r"\d", password) is None):
                 """
                 Displays a pop up if username is not available.
@@ -127,6 +129,8 @@ class RegisterPage(tk.Frame):
                 # Clear these out since certain parameters are persistent objects?
                 username = ""
                 password = ""
+                sec_question = ""
+                sec_answer = ""
             elif (re.search(r"[A-Z]", password) is None):
                 """
                 Displays a pop up if username is not available.
@@ -140,6 +144,8 @@ class RegisterPage(tk.Frame):
                 # Clear these out since certain parameters are persistent objects?
                 username = ""
                 password = ""
+                sec_question = ""
+                sec_answer = ""
             elif (re.search(r"[a-z]", password) is None):
                 """
                 Displays a pop up if username is not available.
@@ -166,6 +172,8 @@ class RegisterPage(tk.Frame):
                 # Clear these out since certain parameters are persistent objects?
                 username = ""
                 password = ""
+                sec_question = ""
+                sec_answer = ""
             else:
                 # CODE NEEDED: Encrypt Password
                 response = gui.getClient().register(username, password, sec_question, sec_answer)
@@ -173,7 +181,7 @@ class RegisterPage(tk.Frame):
                 """
                 Checks to see if username is available.
                 """
-                if (response == False):
+                if (response == 0):
                     """
                     Displays a pop up if username is not available.
                     Clears both textboxes to enter new information.
@@ -185,6 +193,8 @@ class RegisterPage(tk.Frame):
                     # Clear these out since certain parameters are persistent objects?
                     username = ""
                     password = ""
+                    sec_question = ""
+                    sec_answer = ""
                 else:
                     """
                     Creates a new account.
@@ -197,6 +207,8 @@ class RegisterPage(tk.Frame):
                     # Clear these out since certain parameters are persistent objects?
                     username = ""
                     password = ""
+                    sec_question = ""
+                    sec_answer = ""
                     gui.show_frame(menu.MenuPage)
 
                     # Checks to see if client didn't enter a password.
