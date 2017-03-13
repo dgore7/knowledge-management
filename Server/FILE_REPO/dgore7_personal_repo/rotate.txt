@@ -1,0 +1,6 @@
+public void rotate(int[] a, int rotationFactor){
+	int[] res = new int[a.length()];
+	for (int i=0; i<a.length; i++) 
+		res[i] = a[(i + RotationFactor) % a.length];
+
+}
