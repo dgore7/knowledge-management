@@ -5,7 +5,7 @@ import struct
 
 import pickle
 
-from Client import client_c
+from Client import client_c, SUCCESS, FAILURE
 from Client.client_c import client_api
 import codecs
 import ssl
@@ -131,64 +131,67 @@ class Client:
 
         status_code = connection.recv(2)
 
-        if status_code.decode() != "OK":
+        if status_code != SUCCESS:
             print("Error")
             return
+        message = []
+        message.append("gname:")
+        message.append(group)
+        message.append(";")
+        message.append("members:")
+        for i in members:
+            message.append(i)
+            message.append(",")
+        if members:
+            message.pop()
+        message = ''.join(message)
+        message = message.encode()
+        connection.send(message)
+        result = connection.recv(2)
+        if result != SUCCESS:
+            return -1
 
-        connection.send(group.encode())
+        packed_gid = connection.recv(4)
+        gid = struct.unpack("<L", packed_gid)
+        repoids.append(gid)
 
-        status_code = connection.recv(7)
-
-        if status_code.decode() != "SUCCESS":
-            print("Error")
-            return
-
-        for member in members:
-            connection.send(member.encode())
-            connection.recv(5)
-
-        connection.send("DONE".encode())
-
-
-        print(group)
-        print(members)
-        connection.close()
-
-        return "SUCCESS"
 
     def addMember(self, member_name):
         connection = self.sock
-
-        connection.send("addMemGrp".encode())
+        message = "member_add".encode()
+        connection.send(message)
         status_code = connection.recv(2)
 
-        if status_code.decode() != "OK":
+        if status_code != FAILURE:
             print("Error")
-            return
+            return False
 
-        connection.send(member_name.encode())
-
-        connection.close()
-
-        return "SUCCESS"
+        message = member_name.encode()
+        connection.send(message)
+        result = connection.recv(2)
+        if result == SUCCESS:
+            return True
+        else:
+            return False
 
     def removeMember(self, member_name):
         connection = self.sock
 
-        connection.send("removeMemGrp".encode())
+        connection.send("member_remove".encode())
 
         status_code = connection.recv(2)
 
-        if status_code.decode() != "OK":
+        if status_code != SUCCESS:
             print("Error")
-            return
+            return False
 
-        connection.send(member_name.encode())
-
-        connection.close()
-
-        return "SUCCESS"
-
+        message = member_name.encode()
+        connection.send(message)
+        result = connection.recv(2)
+        if result == SUCCESS:
+            return True
+        else:
+            return False
 
     def upload(self, filename, tags, notes, repo):
         try:

@@ -1,5 +1,7 @@
 import sys
 import socket
+#from Client.client import Client
+
 
 # Definitions file for server API variables/strings.
 # Make calls to these variables in code instead of explicit definitions.
