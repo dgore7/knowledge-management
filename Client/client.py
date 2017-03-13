@@ -5,7 +5,9 @@ import struct
 
 import pickle
 
-from Client import client_c, SUCCESS, FAILURE
+from pickle import UnpicklingError
+
+from Client import client_c, SUCCESS, FAILURE, global_username
 from Client.client_c import client_api
 import codecs
 import ssl
@@ -95,9 +97,12 @@ class Client:
             repo_id = repo_id_tup[0]
             repoids.append(repo_id)
             print(repo_id)
-            return 1
         else:
             return 0
+
+        global_username.clear()
+        global_username.append(username)
+        return 1
 
     def register(self, username, password):
         if self.connected == False:
@@ -120,9 +125,12 @@ class Client:
             repo_id = repo_id_tup[0]
             repoids.append(repo_id)
             print(repo_id)
-            return 1
         else:
             return 0
+
+        global_username.clear()
+        global_username.append(username)
+        return 1
 
     def createGroup(self, group, members):
         connection = self.sock
@@ -383,6 +391,29 @@ class Client:
                 break
         result = b''.join(result)
         return pickle.loads(result)
+
+    def retrieve_groups(self, username):
+        connection = self.sock
+        connection.send("groups_retrieve")
+        result = connection.recv(2)
+
+        if result != SUCCESS:
+            print("failed in retrieve groups")
+            return []
+
+        chunks = []
+        while True:
+            bytes_received = connection.recv(1024)
+            if bytes_received == SOCKET_EOF:
+                break
+            else:
+                chunks.append(bytes_received)
+        result = b''.join(chunks)
+        try:
+            groups = pickle.loads(result)
+        except UnpicklingError:
+            return []
+        return groups
 
     def search(self, filename):
         connection = self.sock
