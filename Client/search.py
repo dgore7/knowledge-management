@@ -6,7 +6,7 @@ from tkinter import *
 
 from tkinter import TOP, E
 
-from Client import menu, PERSONAL, GROUPS, ALL, repoids
+from Client import menu, PERSONAL, GROUPS, ALL, repoids, global_username, SHARED, SHARED_REPO_ID
 
 
 class SearchPage(tk.Frame):
@@ -66,8 +66,9 @@ class SearchPage(tk.Frame):
 
         listFrame = tk.Frame(middle)
         listFrame.grid(row=0, column=0)
+        self.list_frame = listFrame
 
-        repoLabel = tk.Label(listFrame, text="Repositaries")
+        repoLabel = tk.Label(listFrame, text="Repositories")
         repoLabel.pack()
 
         selfButton = tk.Button(listFrame, text="Self", command=lambda: self.display_self())
@@ -94,10 +95,10 @@ class SearchPage(tk.Frame):
         self.tree["columns"] = ("owner", "date1", "comment", "number", "date2", "tag")
         self.tree.column("#0", width=100)
         self.tree.column("owner", width=100)
-        self.tree.column("date1", width=100)
+        self.tree.column("date1", width=110)
         self.tree.column("comment", width=100)
         self.tree.column("number", width=100)
-        self.tree.column("date2", width=100)
+        self.tree.column("date2", width=110)
         self.tree.column("tag", width=100)
 
         self.tree.heading("#0", text="File Name")
@@ -111,6 +112,10 @@ class SearchPage(tk.Frame):
         self.tree.pack()
 
         self.tree.bind("<<TreeviewSelect>>", self.OnClick)
+
+        self.group_var = StringVar()
+        self.group_var.trace("w", lambda *args: self.getUpdates(GROUPS))
+        self.groupNameText = tk.Label(self.list_frame, text="Group Name")
 
         sortingFrame = tk.Frame(middle)
         sortingFrame.grid(row=0, column=2)
@@ -149,6 +154,14 @@ class SearchPage(tk.Frame):
         backButton = tk.Button(bottom, text="Back",
                                command=lambda: self.back(gui))
         backButton.grid(row=1, column=1)
+
+    def show_groupOptions(self):
+        self.groupNameText.pack()
+        self.group_names.pack()
+
+    def remove_groupOptions(self):
+        self.groupNameText.pack_forget()
+        self.group_names.pack_forget()
 
     def updateSearch(self):
         if self.monthEntry.get():
@@ -259,6 +272,7 @@ class SearchPage(tk.Frame):
                         self.tree.reattach(child, "", 0)
 
     def display_self(self):
+        self.remove_groupOptions()
         self.getUpdates(PERSONAL)
         # print(self.tree.get_children())
         # print(self.rows)
@@ -269,24 +283,17 @@ class SearchPage(tk.Frame):
         #         self.tree.reattach(child, "", 0)
 
     def display_groups(self):
-        print(self.rows)
-        for child in self.rows:
-            if self.tree.item(child, 'values')[2] != "group":
-                self.tree.detach(child)
-            else:
-                self.tree.reattach(child, "", 0)
+        self.show_groupOptions()
+        self.getUpdates(GROUPS)
+
 
     def display_shared(self):
-        print(self.rows)
-        for child in self.rows:
-            if self.tree.item(child, 'values')[2] != "shared":
-                self.tree.detach(child)
-            else:
-                self.tree.reattach(child, "", 0)
+        self.remove_groupOptions()
+        self.getUpdates(SHARED)
 
     def display_all(self):
-        for child in self.rows:
-            self.tree.reattach(child, "", 0)
+        self.remove_groupOptions()
+        self.getUpdates(ALL)
 
     def download(self, gui):
         if self.filename:
@@ -313,33 +320,37 @@ class SearchPage(tk.Frame):
         else:
             print("Error")
 
+    def display_files(self, files):
+        for tup in files:
+            date = time.gmtime(float(tup[2]))
+            info = str(date[1]) + "/" + str(date[2]) + "/" + str(date[0]) + " " + str(date[3]) + ":" + str(
+                date[4]) + ":" + str(date[5])
+
+            another_date = time.gmtime(int(tup[5]))
+            more_info = str(another_date[1]) + "/" + str(another_date[2]) + "/" + str(another_date[0]) + " " + str(
+                another_date[3]) + ":" + str(another_date[4]) + ":" + str(another_date[5])
+            self.tree.insert("", 0, text=tup[0], values=(tup[1], info, tup[3], tup[4], more_info, tup[6]))
+        print(files)
+
     def getUpdates(self, group_type):
         for child in self.tree.get_children():
             self.tree.delete(child)
-
+        result = []
         if group_type is PERSONAL:
             result = self.client.retrieve_repo([repoids[0]])
-            for tup in result:
-                date = time.gmtime(float(tup[2]))
-                info = str(date[1]) + "/" + str(date[2]) + "/" + str(date[0]) + " " + str(date[3]) + ":" + str(date[4]) + ":" + str(date[5])
 
-                another_date = time.gmtime(int(tup[5]))
-                more_info = str(another_date[1]) + "/" + str(another_date[2]) + "/" + str(another_date[0]) + " " + str(another_date[3]) + ":" + str(another_date[4]) + ":" + str(another_date[5])
-                # print("Year: " + str(time_date[0]))
-                # print("Month: " + str(time_date[1]))
-                # print("Day: " + str(time_date[2]))
-                # print("Hour: " + str(time_date[3]))
-                # print("Minute: " + str(time_date[4]))
-                # print("Second: " + str(time_date[5]))
-                self.tree.insert("", 0, text=tup[0], values=(tup[1], info, tup[3], tup[4], more_info, tup[6]))
-            print(result)
         elif group_type is GROUPS:
-            pass
+            result = self.client.retrieve_repo([self.get_repo_id()])
+        elif group_type is SHARED:
+            result = self.client.retrieve_repo([SHARED_REPO_ID])
         elif group_type is ALL:
-            pass
+            result = self.client.retrieve_repo([repoids[0]])
+            result.extend(self.client.retrieve_repo([gid for gid in self.group_repo_ids()]))
+            result.extend(self.client.retrieve_repo([SHARED_REPO_ID]))
         else:
             # Raise an exception
             pass
+        self.display_files(result)
 
         # for child in self.tree.get_children():
         #     self.tree.delete(child)
@@ -366,8 +377,32 @@ class SearchPage(tk.Frame):
         """
         self.searchInput.delete(0, 'end')
         self.clicked = 0
+        self.group_names.pack_forget()
 
         """
         Goes back to the starting page.
         """
         gui.show_frame(menu.MenuPage)
+
+    def get_repo_id(self):
+        repo_name = self.group_var.get()
+        for group_tuple in self.list_groups:
+            if group_tuple[1] == repo_name:
+                return group_tuple[0]
+
+    def group_repo_ids(self):
+        for group_tuple in self.list_groups:
+            yield group_tuple[0]
+
+    def on_show(self):
+        self.list_groups = self.client.retrieve_groups(global_username[0])
+        if self.list_groups:
+            self.group_var.set(self.list_groups[0][1])
+        else:
+            self.group_var.set(" ")
+        print(self.list_groups)
+
+        self.group_names = tk.OptionMenu(self.list_frame, self.group_var,
+                         *[tup[1] for tup in self.list_groups] if self.list_groups else " ")
+        for child in self.tree.get_children():
+            self.tree.delete(child)

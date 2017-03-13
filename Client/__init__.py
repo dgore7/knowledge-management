@@ -1,8 +1,10 @@
-SUCCESS = "OK"
-FAILURE = "KO"
+SUCCESS = "OK".encode()
+FAILURE = "KO".encode()
 PERSONAL = 1
 GROUPS = 2
-ALL = 3
+SHARED = 3
+ALL = 4
+SHARED_REPO_ID = 0
 repoids = []
 global_username = []
 SOCKET_EOF = "\n\r\n\r".encode()

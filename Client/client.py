@@ -141,7 +141,7 @@ class Client:
 
         if status_code != SUCCESS:
             print("Error")
-            return
+            return -1
         message = []
         message.append("gname:")
         message.append(group)
@@ -162,6 +162,7 @@ class Client:
         packed_gid = connection.recv(4)
         gid = struct.unpack("<L", packed_gid)
         repoids.append(gid)
+        return 1
 
 
     def addMember(self, member_name):
@@ -402,11 +403,20 @@ class Client:
 
     def retrieve_groups(self, username):
         connection = self.sock
-        connection.send("groups_retrieve")
+        connection.send("groups_retrieve".encode())
+        result = connection.recv(1024)
+
+        if result != SUCCESS:
+            print("failed in retrieve groups1")
+            return []
+
+        message = "username:" + username
+        message = message.encode()
+        connection.send(message)
         result = connection.recv(2)
 
         if result != SUCCESS:
-            print("failed in retrieve groups")
+            print("failed in retrieve groups2")
             return []
 
         chunks = []

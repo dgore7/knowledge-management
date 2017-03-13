@@ -3,28 +3,18 @@ import tkinter as tk
 from tkinter import RIGHT, END, ACTIVE, StringVar
 import tkinter.messagebox
 
-from Client import menu
+from Client import menu, global_username
 
 
 class GroupManagementPage(tk.Frame):
     def __init__(self, frame, gui):
         tk.Frame.__init__(self, frame)
+        self.var = StringVar()
+        self.list_groups = []
         label = tk.Label(self, text="Group Management")
         label.pack()
 
-        # list_groups : list
-        # drop_down = tk.OptionMenu(self, *[tup[1] for tup in list_groups])
-        # drop_down.pack()
-
-        tuple_groups: list = [("1", "a"), ("2", "b"), ("3", "c")]
-        list_groups = []
-        for group_info in tuple_groups:
-            list_groups.append(group_info[1])
-
-        self.var = StringVar()
-        self.var.set(list_groups[0])
-        drop_down = tk.OptionMenu(self, self.var, *list_groups)
-        drop_down.pack()
+        self.client = gui.getClient()
 
         top = tk.Frame(self)
         top.pack()
@@ -92,5 +82,18 @@ class GroupManagementPage(tk.Frame):
     def back(self, gui):
         self.memberEntry.delete(0, 'end')
         self.list_members.delete(0, END)
+        self.group_names.destroy()
 
         gui.show_frame(menu.MenuPage)
+
+    def on_show(self):
+        self.list_groups = self.client.retrieve_groups(global_username[0])
+        if self.list_groups:
+            self.var.set(self.list_groups[0][1])
+        else:
+            self.var.set(" ")
+        print(self.list_groups)
+
+        self.group_names = tk.OptionMenu(self, self.var, *[tup[1] for tup in self.list_groups]
+                                                                if self.list_groups else " ")
+        self.group_names.pack()

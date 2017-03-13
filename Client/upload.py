@@ -5,7 +5,7 @@ from tkinter import *
 from tkinter import TOP, E
 import tkinter.messagebox
 
-from Client import menu, repoids
+from Client import menu, repoids, global_username, SHARED_REPO_ID
 
 
 class UploadPage(tk.Frame):
@@ -18,6 +18,8 @@ class UploadPage(tk.Frame):
         """
         tk.Frame.__init__(self, frame)
 
+        self.client = gui.getClient()
+
         """
         Creates a Label to display 'Upload'.
         """
@@ -26,6 +28,7 @@ class UploadPage(tk.Frame):
 
         # Frame used for organization
         top = tk.Frame(self)
+        self.top = top
         top.pack(side=TOP)
 
         groupInfoFrame = tk.Frame(self)
@@ -90,6 +93,8 @@ class UploadPage(tk.Frame):
         repoOptionsFrame = tk.Frame(top)
         repoOptionsFrame.grid(row=3, column=1, columnspan=1)
 
+        self.var = StringVar()
+
         self.repo_destination = StringVar()
         self.repo_destination.set("self")
 
@@ -126,11 +131,22 @@ class UploadPage(tk.Frame):
 
     def show_groupOptions(self):
         self.groupNameText.grid(row=4, column=0)
-        self.groupNameInput.grid(row=4, column=1)
+        self.group_names.grid(row=4, column=1)
 
     def remove_groupOptions(self):
         self.groupNameText.grid_forget()
-        self.groupNameInput.grid_forget()
+        self.group_names.grid_forget()
+
+    def get_repo_id(self):
+        repo = self.repo_destination.get()
+        if repo == "self":
+            return repoids[0]
+        elif repo == "group":
+            for group_tuple in self.list_groups:
+                if group_tuple[1] == self.var.get():
+                    return group_tuple[0]
+        elif repo == "shared":
+            return SHARED_REPO_ID
 
     def upload(self, gui, filename, tag, comment):
         if not filename and not tag and len(comment) == 1:
@@ -146,10 +162,11 @@ class UploadPage(tk.Frame):
             tkinter.messagebox.showinfo("Warning", "Please enter a comment.")
 
         elif filename and tag and comment:
+            repo_id = self.get_repo_id()
             if self.file_path:
-                response = gui.getClient().upload(self.file_path, [tag], comment, str(repoids[0]))
+                response = gui.getClient().upload(self.file_path, [tag], comment, str(repo_id))
             else:
-                response = gui.getClient().upload(filename, [tag], comment, str(repoids[0]))
+                response = gui.getClient().upload(filename, [tag], comment, str(repo_id))
 
             if not response:
                 tkinter.messagebox.showinfo("Warning", "File " + filename + " was not found. The file was not uploaded")
@@ -185,8 +202,24 @@ class UploadPage(tk.Frame):
         self.tagsInput.delete(0, 'end')
         self.commentsInput.delete("1.0", END)
         self.repo_destination.set("self")
+        try:  # god forgive my sins
+            self.group_names.destroy()
+        except AttributeError:
+            pass  # ignore if group_names does not exist
 
         """
         Goes back to the starting page.
         """
         gui.show_frame(menu.MenuPage)
+
+    def on_show(self):
+        self.list_groups = self.client.retrieve_groups(global_username[0])
+        if self.list_groups:
+            self.var.set(self.list_groups[0][1])
+        else:
+            self.var.set(" ")
+        print(self.list_groups)
+
+        self.group_names = tk.OptionMenu(self.top, self.var, *[tup[1] for tup in self.list_groups]
+                                                                if self.list_groups else " ")
+

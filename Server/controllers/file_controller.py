@@ -22,7 +22,10 @@ def upload_file(connection, upload_info):
     group_id = int(upload_info['gid'])
     notes = upload_info['notes']
     mod_time = float(upload_info['mod_time'])
-    owner = db.get_username(group_id)
+    if group_id != 0:
+        owner = db.get_username(group_id)
+    else:
+        owner = 'DUMMY_SHARED_USER'
     db.upload(filename, tags, owner, group_id, notes, mod_time)
 
     if  db.__contains__(filename,owner):
@@ -89,6 +92,7 @@ def retrieve_repo(connection, query):
         connection.send(FAILURE)
         return
     group_ids = query['group_ids']
+    group_ids = group_ids.split(',')
     connection.send(SUCCESS)
     result = []
     for group_id in group_ids:
