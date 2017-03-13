@@ -29,12 +29,14 @@ class DB:
              repo_id    INTEGER           NOT NULL,
              FOREIGN KEY (repo_id) REFERENCES GROUPS(id));''')
 
+
         self.conn.execute('''CREATE TABLE IF NOT EXISTS FILE
             (filename   TEXT NOT NULL,
              owner      TEXT NOT NULL,
              timestamp  TEXT,
              notes      TEXT,
              group_id   INTEGER,
+             mod_time   INTEGER,
              PRIMARY KEY (filename, group_id),
              FOREIGN KEY (owner)    REFERENCES USER(username),
              FOREIGN KEY (group_id) REFERENCES GROUPS(id));''')
@@ -84,9 +86,6 @@ class DB:
             return None
         elif user[0] == username:
             return user[2]
-        # backup catchall if for some reason the returned username != input username
-        else:
-            return None
 
     def register(self, username, pword, sec_question, sec_answer):
         """
@@ -99,17 +98,17 @@ class DB:
                  True if username is unique and user is put in db
         """
         self.lock.acquire()
-        success = False
+        result = 0
         c = self.conn.cursor()
         try:
             c.execute("INSERT INTO GROUPS(groupname, user_created) VALUES(?,?)", (username + "_personal_repo", False))
             gid = c.lastrowid
             print(type(gid))
-            c.execute("INSERT INTO USER(username, password, repo_id) VALUES(?,?,?,?,?)", (username, pword, sec_question,
+            c.execute("INSERT INTO USER(username, password, question, answer, repo_id) VALUES(?,?,?,?,?)", (username, pword, sec_question,
                                                                                             sec_answer ,gid))
             c.execute("INSERT INTO USER_GROUP(group_id, username) VALUES(?,?)", (gid, username))
             self.conn.commit()
-            success = True
+            result = gid
         # username is not unique
         except sqlite3.Warning:
             print('ignored')
@@ -117,7 +116,7 @@ class DB:
             print('Exception in register:', e)
         finally:
             self.lock.release()
-            return success
+        return result
 
     def create_group(self, gname, members):
         try:
@@ -132,26 +131,57 @@ class DB:
             return 0, None
         return cursor.rowcount, gid
 
+
+    def delete_group(self, gname, members):
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute("DELETE FROM GROUPS WHERE groupname=?", (gname))
+        except sqlite3.error as e:
+            print ('Error in delete_group', e)
+        return cursor.rowcount == 1
+
     def add_user_to_group(self, gid, uname):
         cursor = self.conn.cursor()
+        self.lock.acquire()
         try:
             cursor.execute("INSERT OR IGNORE INTO USER_GROUP(group_id, username) VALUES(?,?)",
-                               (gid, uname))
+                           (gid, uname))
             self.conn.commit()
         except sqlite3.Error as e:
             print('Error in add_user_to_group', e)
+        finally:
+            self.lock.release()
 
         return cursor.rowcount == 1
 
+    def does_user_exists(self, uname):
+        cursor = self.conn.cursor()
+        try:
+            cursor.execute("SELECT * FROM USER WHERE username=?", (uname,))
+        except Exception:
+            pass
+        result = cursor.fetchone()
+        resultlen = len(result)
+        if resultlen != 0:
+            return True
+        else:
+            return False
+
     def delete_user_from_group(self, gid, uname):
         cursor = self.conn.cursor()
+        self.lock.acquire()
         try:
             cursor.execute("DELETE FROM USER_GROUP WHERE username=? AND group_id=?",
                                (uname, gid))
             self.conn.commit()
         except sqlite3.Error as e:
             print('Error in add_user_to_group', e)
-        return cursor.rowcount == 1
+        finally:
+            self.lock.release()
+        if cursor.rowcount == 1:
+            return True
+        else:
+            return False
 
     def retrieve_repo(self, gid):
         cursor = self.conn.cursor()
@@ -179,7 +209,6 @@ class DB:
         except sqlite3.Error as e:
             print('Error in get_username', e)
 
-
     def repo_name(self, gid):
         cursor = self.conn.cursor()
         try:
@@ -189,22 +218,27 @@ class DB:
         except sqlite3.Error as e:
             print('Error in repo_name', e)
 
-    def upload(self, fileName, tags, owner, group_id):  # Written by Ayad
+    def upload(self, file_name, tags, owner, group_id, notes, mod_time):  # Written by Ayad
         """
         This method inserts data into the database
-        :param fileName:
+        :param mod_time:
+        :param notes:
+        :param group_id:
+        :param file_name:
         :param tags:
         :param owner:
         :return:
         """
         try:
-            self.conn.execute("INSERT INTO FILE(filename, owner, timestamp, group_id) VALUES(?,?,?,?)",
-                              (fileName, owner, time.time(), group_id))
+            self.conn.execute("""INSERT INTO
+                              FILE(filename, owner, timestamp, group_id, notes, mod_time)
+                              VALUES (?,?,?,?,?,?)""",
+                              (file_name, owner, time.time(), group_id, notes, mod_time))
             for tag in tags:
                 self.conn.execute("INSERT OR IGNORE INTO TAG VALUES(?)",
                                   (tag,))
                 self.conn.execute("INSERT INTO FILE_TAG(filename, group_id, tagname) VALUES(?,?,?)",
-                                  (fileName, group_id, tag))
+                                  (file_name, group_id, tag))
             self.conn.commit()
         except sqlite3.Error as e:
             print("An Error Occured in upload: " + str(e.args) + "\n\t\t all vars = " + str(locals()))
