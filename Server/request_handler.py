@@ -114,6 +114,14 @@ class RequestHandler(threading.Thread):
                         print("Removing member: " + msg)
                         g_ctrlr.removeMember(self.connection, msg)
 
+                    elif client_option == "groups_retrieve":
+                        self.connection.send(SUCCESS)
+                        msg = self.connection.recv(1024)
+                        msg = msg.decode()
+                        msg = self.parse_request(msg)
+                        print("Removing member: " + msg)
+                        g_ctrlr.retrieve_groups(self.connection, msg)
+
                     else:
                         self.connection.send(FAILURE)
 
