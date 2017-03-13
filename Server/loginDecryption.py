@@ -5,7 +5,7 @@ import base64
 import os
 import hashlib
 import binascii
-import loginEncryption
+from Client import loginEncryption
 from itertools import zip_longest
 
 

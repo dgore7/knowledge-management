@@ -37,7 +37,7 @@ class RegisterPage(tk.Frame):
         """
         Creates a Label to display 'Create a Username'
         """
-        self.usernameText = tk.Label(top, text="Create a Username")
+        self.usernameText = tk.Label(top, text="Create a Username:")
         self.usernameText.grid(row=1, column=0, sticky=E)
 
         """
@@ -49,7 +49,7 @@ class RegisterPage(tk.Frame):
         """
         Creates a Label to display 'Create a Password'
         """
-        self.passwordText = tk.Label(top, text="Create a Password")
+        self.passwordText = tk.Label(top, text="Create a Password:")
         self.passwordText.grid(row=2, column=0, sticky=E)
 
         """
@@ -60,11 +60,36 @@ class RegisterPage(tk.Frame):
         self.passwordInput.grid(row=2, column=1, sticky=E)
 
         """
+        Creates a Label to display 'Create a Password'
+        """
+        self.sec_questionText = tk.Label(top, text="Security Question:")
+        self.sec_questionText.grid(row=3, column=0, sticky=E)
+
+        """
+        Creates a Entry to display a textbox for the client to enter their password.
+        """
+        self.sec_questionInput = tk.Entry(top)
+        self.sec_questionInput.grid(row=3, column=1, sticky=E)
+
+        """
+        Creates a Label to display 'Create a Password'
+        """
+        self.sec_answerText = tk.Label(top, text="Security Answer:")
+        self.sec_answerText.grid(row=4, column=0, sticky=E)
+
+        """
+        Creates a Entry to display a textbox for the client to enter their password.
+        """
+        self.sec_answerInput = tk.Entry(top)
+        self.sec_answerInput.grid(row=4, column=1, sticky=E)
+
+        """
         Creates and adds the sign up button.
         Creates a new user account and takes the client to the menu page when clicked on.
         """
         signUpButton = tk.Button(bottom, text="Sign-Up",
-                                 command=lambda: self.register(gui, self.usernameInput.get(), self.passwordInput.get()))
+                                 command=lambda: self.register(gui, self.usernameInput.get(), self.passwordInput.get(),
+                                                               self.sec_questionInput.get(), self.sec_answerInput.get()))
         signUpButton.grid(row=0)
 
         """
@@ -74,7 +99,7 @@ class RegisterPage(tk.Frame):
         backButton = tk.Button(bottom, text="Back", command=lambda: self.back(gui))
         backButton.grid(row=0, column=1)
 
-    def register(self, gui, username, password):
+    def register(self, gui, username, password, sec_question, sec_answer):
         if (username and password):
             if (len(password) < 8):
                 """
@@ -84,9 +109,13 @@ class RegisterPage(tk.Frame):
                 tkinter.messagebox.showinfo("Warning", "Password must be at least 12 characters long!")
                 self.usernameInput.delete(0, 'end')
                 self.passwordInput.delete(0, 'end')
+                self.sec_answerInput.delete(0, 'end')
+                self.sec_questionInput.delete(0, 'end')
                 # Clear these out since certain parameters are persistent objects?
                 username = ""
                 password = ""
+                sec_question = ""
+                sec_answer = ""
             elif (re.search(r"\d", password) is None):
                 """
                 Displays a pop up if username is not available.
@@ -95,9 +124,13 @@ class RegisterPage(tk.Frame):
                 tkinter.messagebox.showinfo("Warning", "Password must contain a number!")
                 self.usernameInput.delete(0, 'end')
                 self.passwordInput.delete(0, 'end')
+                self.sec_answerInput.delete(0, 'end')
+                self.sec_questionInput.delete(0, 'end')
                 # Clear these out since certain parameters are persistent objects?
                 username = ""
                 password = ""
+                sec_question = ""
+                sec_answer = ""
             elif (re.search(r"[A-Z]", password) is None):
                 """
                 Displays a pop up if username is not available.
@@ -106,9 +139,13 @@ class RegisterPage(tk.Frame):
                 tkinter.messagebox.showinfo("Warning", "Password must contain an uppercase letter!")
                 self.usernameInput.delete(0, 'end')
                 self.passwordInput.delete(0, 'end')
+                self.sec_answerInput.delete(0, 'end')
+                self.sec_questionInput.delete(0, 'end')
                 # Clear these out since certain parameters are persistent objects?
                 username = ""
                 password = ""
+                sec_question = ""
+                sec_answer = ""
             elif (re.search(r"[a-z]", password) is None):
                 """
                 Displays a pop up if username is not available.
@@ -117,6 +154,8 @@ class RegisterPage(tk.Frame):
                 tkinter.messagebox.showinfo("Warning", "Password must contain a lowercase letter!")
                 self.usernameInput.delete(0, 'end')
                 self.passwordInput.delete(0, 'end')
+                self.sec_answerInput.delete(0, 'end')
+                self.sec_questionInput.delete(0, 'end')
                 # Clear these out since certain parameters are persistent objects?
                 username = ""
                 password = ""
@@ -128,12 +167,16 @@ class RegisterPage(tk.Frame):
                 tkinter.messagebox.showinfo("Warning", "Password must contain a special character!")
                 self.usernameInput.delete(0, 'end')
                 self.passwordInput.delete(0, 'end')
+                self.sec_answerInput.delete(0, 'end')
+                self.sec_questionInput.delete(0, 'end')
                 # Clear these out since certain parameters are persistent objects?
                 username = ""
                 password = ""
+                sec_question = ""
+                sec_answer = ""
             else:
                 # CODE NEEDED: Encrypt Password
-                response = gui.getClient().register(username, password)
+                response = gui.getClient().register(username, password, sec_question, sec_answer)
 
                 """
                 Checks to see if username is available.
@@ -150,6 +193,8 @@ class RegisterPage(tk.Frame):
                     # Clear these out since certain parameters are persistent objects?
                     username = ""
                     password = ""
+                    sec_question = ""
+                    sec_answer = ""
                 else:
                     """
                     Creates a new account.
@@ -162,6 +207,8 @@ class RegisterPage(tk.Frame):
                     # Clear these out since certain parameters are persistent objects?
                     username = ""
                     password = ""
+                    sec_question = ""
+                    sec_answer = ""
                     gui.show_frame(menu.MenuPage)
 
                     # Checks to see if client didn't enter a password.
