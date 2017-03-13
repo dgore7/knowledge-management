@@ -18,8 +18,10 @@ def register_user(register_info):
     print("Inside RegisterHandler")
     username = register_info['username']
     password = register_info['password']
+    sec_question = register_info["sec_question"]
+    sec_answer = register_info["sec_answer"]
     print("Leaving RegisterHandler")
-    if db.register(username, password):
+    if db.register(username, password, sec_question, sec_answer):
         os.makedirs(
             os.path.normpath(
                 os.path.join(

@@ -24,6 +24,8 @@ class DB:
         self.conn.execute('''CREATE TABLE IF NOT EXISTS USER
             (username   TEXT PRIMARY KEY  NOT NULL,
              password   TEXT              NOT NULL,
+             question   TEXT                      ,
+             answer     TEXT                      ,
              repo_id    INTEGER           NOT NULL,
              FOREIGN KEY (repo_id) REFERENCES GROUPS(id));''')
 
@@ -86,7 +88,7 @@ class DB:
         else:
             return None
 
-    def register(self, username, pword):
+    def register(self, username, pword, sec_question, sec_answer):
         """
         Attempts to enter a new username and pword into the USERS table
 
@@ -103,7 +105,8 @@ class DB:
             c.execute("INSERT INTO GROUPS(groupname, user_created) VALUES(?,?)", (username + "_personal_repo", False))
             gid = c.lastrowid
             print(type(gid))
-            c.execute("INSERT INTO USER(username, password, repo_id) VALUES(?,?,?)", (username, pword, gid))
+            c.execute("INSERT INTO USER(username, password, repo_id) VALUES(?,?,?,?,?)", (username, pword, sec_question,
+                                                                                            sec_answer ,gid))
             c.execute("INSERT INTO USER_GROUP(group_id, username) VALUES(?,?)", (gid, username))
             self.conn.commit()
             success = True

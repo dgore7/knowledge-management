@@ -101,7 +101,7 @@ class Server(threading.Thread):
             try:
                 sock, addr = self.server_proc.accept()
                 print("Recieved new connection from {}.".format(addr))
-                connections.append(sock)
+                connections.append(sock) #append to dictionary and log whether they are logged in
                 handler = RequestHandler(sock)
                 handler.start()
             except socket.error:
