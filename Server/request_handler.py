@@ -74,9 +74,10 @@ class RequestHandler(threading.Thread):
 
                     elif client_option == "retrieve_repo":
                         self.connection.send(SUCCESS)
+                        print('made it')
                         msg = self.connection.recv(1024).decode()
-                        print("Retrieving File: " + msg)
-                        f_ctrlr.retrieve_file(self.parse_request(msg))
+                        print("Retrieving Repo: " + msg)
+                        f_ctrlr.retrieve_repo(self.connection, self.parse_request(msg))
 
                     elif client_option == "search":
                         msg = self.connection.recv(1024)
@@ -94,31 +95,31 @@ class RequestHandler(threading.Thread):
                         msg = self.connection.recv(1024)
                         msg = msg.decode()
                         msg = self.parse_request(msg)
-                        print("Creating group: " + msg)
+                        print("Creating group: " + str(msg))
                         g_ctrlr.addGroup(self.connection, msg)
 
                     elif client_option == "member_add":
                         self.connection.send(SUCCESS)
                         msg = self.connection.recv(1024)
                         msg = msg.decode()
-                        msg = self.parse_request(msg)
                         print("Adding member: " + msg)
+                        msg = self.parse_request(msg)
                         g_ctrlr.addMember(self.connection, msg)
 
                     elif client_option == "member_remove":
                         self.connection.send(SUCCESS)
                         msg = self.connection.recv(1024)
                         msg = msg.decode()
-                        msg = self.parse_request(msg)
                         print("Removing member: " + msg)
+                        msg = self.parse_request(msg)
                         g_ctrlr.removeMember(self.connection, msg)
 
                     elif client_option == "groups_retrieve":
-                        self.connection.send(SUCCESS)
+                        self.connection.send("OK".encode())
                         msg = self.connection.recv(1024)
                         msg = msg.decode()
+                        print("Retrieving groups: " + msg)
                         msg = self.parse_request(msg)
-                        print("Removing member: " + msg)
                         g_ctrlr.retrieve_groups(self.connection, msg)
 
                     else:

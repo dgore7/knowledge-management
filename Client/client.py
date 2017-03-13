@@ -137,7 +137,7 @@ class Client:
 
         if status_code != SUCCESS:
             print("Error")
-            return
+            return -1
         message = []
         message.append("gname:")
         message.append(group)
@@ -158,6 +158,7 @@ class Client:
         packed_gid = connection.recv(4)
         gid = struct.unpack("<L", packed_gid)
         repoids.append(gid)
+        return 1
 
 
     def addMember(self, member_name):
@@ -225,6 +226,7 @@ class Client:
         msg.extend(['notes:', notes, ';'])
         print(tags)
         msg.extend(['mod_time:', mod_time, ';'])
+        ######### Add statements to determine where to upload
         msg.extend(['gid:', repo, ';'])
         tags_buffer = ['tags:']
         tags_buffer.extend(tag + ',' for tag in tags)
@@ -289,7 +291,6 @@ class Client:
         file = open(filename, "rb")
 
         for line in file:
-            print(line)
             connection.send(line)
         connection.send(SOCKET_EOF)
         file.close()
@@ -371,36 +372,53 @@ class Client:
         print(filename)
         # sock.close()
 
-    def retrieve_repo(self, group_id=None, username=None):
+    def retrieve_repo(self, group_ids=None):
         connection = self.sock
-        if not group_id and not username:
+        if not group_ids:
             raise RuntimeError('Arguements required')
-        connection.send("retrieve repo".encode())
-        result = connection.recv(1024).decode()
+        connection.send("retrieve_repo".encode())
+        result = connection.recv(2)
         if not result == client_api.SUCCESS:
             print(result)
             return []
-        if group_id:
-            connection.send(str(group_id).encode())
-        elif username:
-            connection.send(username.encode())
+        msg = 'group_ids:' + ','.join(str(gid) for gid in group_ids)
+        msg = msg.encode()
+        connection.send(msg)
+
+        result = connection.recv(2)
+        if not result == client_api.SUCCESS:
+            print(result)
+            return []
+
+        # python string builder pattern
         result = []
         while True:
             bytes_received = connection.recv(1024)
-            if bytes_received:
-                result.append(bytes_received)
-            else:
+            if bytes_received == SOCKET_EOF:
                 break
+            elif bytes_received:
+                result.append(bytes_received)
+
+        print(result)
         result = b''.join(result)
         return pickle.loads(result)
 
     def retrieve_groups(self, username):
         connection = self.sock
-        connection.send("groups_retrieve")
+        connection.send("groups_retrieve".encode())
+        result = connection.recv(1024)
+
+        if result != SUCCESS:
+            print("failed in retrieve groups1")
+            return []
+
+        message = "username:" + username
+        message = message.encode()
+        connection.send(message)
         result = connection.recv(2)
 
         if result != SUCCESS:
-            print("failed in retrieve groups")
+            print("failed in retrieve groups2")
             return []
 
         chunks = []

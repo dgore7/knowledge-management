@@ -3,12 +3,14 @@ import tkinter as tk
 from tkinter import TOP, RIGHT, E, END, ACTIVE
 import tkinter.messagebox
 
-import menu
+from Client import menu, global_username
 
 
 class GroupPage(tk.Frame):
     def __init__(self, frame, gui):
         tk.Frame.__init__(self, frame)
+
+        self.members = []
 
         label = tk.Label(self, text="Group")
         label.pack(side=TOP)
@@ -29,8 +31,6 @@ class GroupPage(tk.Frame):
 
         self.groupInput = tk.Entry(top)
         self.groupInput.grid(row=0, column=1)
-
-        self.members = []
 
         member_label = tk.Label(top, text="Member Name")
         member_label.grid(row=1, column=0)
@@ -95,13 +95,13 @@ class GroupPage(tk.Frame):
         elif group_name:
             if self.member_entry.get():
                 self.members.append(self.member_entry.get())
-
+            self.members.append(global_username[0])
             response = gui.getClient().createGroup(group_name, self.members)
 
-            if response == "SUCCESS":
+            if response > 0:
                 tk.messagebox.showinfo("Notice", "Successfully create group: " + group_name)
 
-            self.members = []
+            self.members = [global_username[0]]
             self.list_members.delete(0, END)
             self.groupInput.delete(0, 'end')
             self.member_entry.delete(0, 'end')

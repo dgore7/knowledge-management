@@ -22,7 +22,10 @@ def upload_file(connection, upload_info):
     group_id = int(upload_info['gid'])
     notes = upload_info['notes']
     mod_time = float(upload_info['mod_time'])
-    owner = db.get_username(group_id)
+    if group_id != 0:
+        owner = db.get_username(group_id)
+    else:
+        owner = 'DUMMY_SHARED_USER'
     db.upload(filename, tags, owner, group_id, notes, mod_time)
 
     if  db.__contains__(filename,owner):
@@ -85,18 +88,18 @@ def retrieve_file(connection, filename):
 
 @verboseFunc
 def retrieve_repo(connection, query):
-    if 'group_id' not in query:
+    if 'group_ids' not in query:
         connection.send(FAILURE)
-    try:
-        group_id = query['group_id']
-    except KeyError as e:
-        msg = ','.join(arg for arg in e.args).encode()
-        connection.send(FAILURE + msg)
         return
+    group_ids = query['group_ids']
+    group_ids = group_ids.split(',')
     connection.send(SUCCESS)
-    repo = db.retrieve_repo(group_id)
-    pickled_repo = pickle.dumps(repo)
+    result = []
+    for group_id in group_ids:
+        result.extend(db.retrieve_repo(int(group_id)))
+    pickled_repo = pickle.dumps(result)
     connection.send(pickled_repo)
+    connection.send(SOCKET_EOF)
 
 
 @verboseFunc
