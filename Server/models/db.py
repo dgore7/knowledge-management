@@ -27,6 +27,7 @@ class DB:
              repo_id    INTEGER           NOT NULL,
              FOREIGN KEY (repo_id) REFERENCES GROUPS(id));''')
 
+
         self.conn.execute('''CREATE TABLE IF NOT EXISTS FILE
             (filename   TEXT NOT NULL,
              owner      TEXT NOT NULL,
@@ -126,26 +127,57 @@ class DB:
             return 0, None
         return cursor.rowcount, gid
 
+
+    def delete_group(self, gname, members):
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute("DELETE FROM GROUPS WHERE groupname=?", (gname))
+        except sqlite3.error as e:
+            print ('Error in delete_group', e)
+        return cursor.rowcount == 1
+
     def add_user_to_group(self, gid, uname):
         cursor = self.conn.cursor()
+        self.lock.acquire()
         try:
             cursor.execute("INSERT OR IGNORE INTO USER_GROUP(group_id, username) VALUES(?,?)",
-                               (gid, uname))
+                           (gid, uname))
             self.conn.commit()
         except sqlite3.Error as e:
             print('Error in add_user_to_group', e)
+        finally:
+            self.lock.release()
 
         return cursor.rowcount == 1
 
+    def does_user_exists(self, uname):
+        cursor = self.conn.cursor()
+        try:
+            cursor.execute("SELECT * FROM USER WHERE username=?", (uname,))
+        except Exception:
+            pass
+        result = cursor.fetchone()
+        resultlen = len(result)
+        if resultlen != 0:
+            return True
+        else:
+            return False
+
     def delete_user_from_group(self, gid, uname):
         cursor = self.conn.cursor()
+        self.lock.acquire()
         try:
             cursor.execute("DELETE FROM USER_GROUP WHERE username=? AND group_id=?",
                                (uname, gid))
             self.conn.commit()
         except sqlite3.Error as e:
             print('Error in add_user_to_group', e)
-        return cursor.rowcount == 1
+        finally:
+            self.lock.release()
+        if cursor.rowcount == 1:
+            return True
+        else:
+            return False
 
     def retrieve_repo(self, gid):
         cursor = self.conn.cursor()

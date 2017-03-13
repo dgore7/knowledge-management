@@ -5,7 +5,10 @@ import struct
 from Server import connections
 from socket import SHUT_WR, error as SocketError, errno as SocketErrno
 
-from Server.controllers import SUCCESS, FAILURE, file_controller as f_ctrlr, user_controller as u_ctrlr
+from Server.controllers import SUCCESS, FAILURE, \
+    file_controller as f_ctrlr, \
+    user_controller as u_ctrlr, \
+    group_controller as g_ctrlr
 
 
 
@@ -86,13 +89,29 @@ class RequestHandler(threading.Thread):
                         print("Deleting file: " + msg)
                         f_ctrlr.delete_file(self.connection, self.parse_request(msg))
 
-                    elif client_option == "addMemGrp":
-                        print("NEED TO IMPLEMENT SERVER SIDE MEMBER ADD TO GROUP HANDLER!")
-                        self.connection.send(FAILURE)
+                    elif client_option == "create_group":
+                        self.connection.send(SUCCESS)
+                        msg = self.connection.recv(1024)
+                        msg = msg.decode()
+                        msg = self.parse_request(msg)
+                        print("Creating group: " + msg)
+                        g_ctrlr.addGroup(self.connection, msg)
 
-                    elif client_option == "removeMemGrp":
-                        print("NEED TO IMPLEMENT SERVER SIDE MEMBER REMOVE FROM GROUP HANDLER!")
-                        self.connection.send(FAILURE)
+                    elif client_option == "member_add":
+                        self.connection.send(SUCCESS)
+                        msg = self.connection.recv(1024)
+                        msg = msg.decode()
+                        msg = self.parse_request(msg)
+                        print("Adding member: " + msg)
+                        g_ctrlr.addMember(self.connection, msg)
+
+                    elif client_option == "member_remove":
+                        self.connection.send(SUCCESS)
+                        msg = self.connection.recv(1024)
+                        msg = msg.decode()
+                        msg = self.parse_request(msg)
+                        print("Removing member: " + msg)
+                        g_ctrlr.removeMember(self.connection, msg)
 
                     else:
                         self.connection.send(FAILURE)
