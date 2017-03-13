@@ -28,6 +28,9 @@ class UploadPage(tk.Frame):
         top = tk.Frame(self)
         top.pack(side=TOP)
 
+        groupInfoFrame = tk.Frame(self)
+        groupInfoFrame.pack()
+
         # Frame used for organization
         bottom = tk.Frame(self)
         bottom.pack(side=TOP)
@@ -81,15 +84,21 @@ class UploadPage(tk.Frame):
         repoText = tk.Label(top, text="Repositary")
         repoText.grid(row=3, column=0)
 
+        self.groupNameText = tk.Label(top, text="Group Name")
+        self.groupNameInput = tk.Entry(top)
+
         repoOptionsFrame = tk.Frame(top)
         repoOptionsFrame.grid(row=3, column=1, columnspan=1)
 
         self.repo_destination = StringVar()
         self.repo_destination.set("self")
 
-        selfRB = Radiobutton(repoOptionsFrame, text="Self", variable=self.repo_destination, value="self")
-        groupRB = Radiobutton(repoOptionsFrame, text="Group", variable=self.repo_destination, value="group")
-        sharedRB = Radiobutton(repoOptionsFrame, text="Shared", variable=self.repo_destination, value="shared")
+        selfRB = Radiobutton(repoOptionsFrame, text="Self", variable=self.repo_destination, value="self",
+                             command=lambda: self.remove_groupOptions())
+        groupRB = Radiobutton(repoOptionsFrame, text="Group", variable=self.repo_destination, value="group",
+                              command=lambda: self.show_groupOptions())
+        sharedRB = Radiobutton(repoOptionsFrame, text="Shared", variable=self.repo_destination, value="shared",
+                               command=lambda: self.remove_groupOptions())
 
         selfRB.grid(row=0, column=0, sticky=W)
         groupRB.grid(row=0, column=1)
@@ -114,6 +123,14 @@ class UploadPage(tk.Frame):
         backButton = tk.Button(bottom, text="Back",
                                command=lambda: self.back(gui))
         backButton.grid(row=0, column=1)
+
+    def show_groupOptions(self):
+        self.groupNameText.grid(row=4, column=0)
+        self.groupNameInput.grid(row=4, column=1)
+
+    def remove_groupOptions(self):
+        self.groupNameText.grid_forget()
+        self.groupNameInput.grid_forget()
 
     def upload(self, gui, filename, tag, comment):
         if not filename and not tag and len(comment) == 1:

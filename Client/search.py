@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import ttk
 import tkinter.messagebox
+import time
+from tkinter import *
 
 from tkinter import TOP, E
 
@@ -37,8 +39,8 @@ class SearchPage(tk.Frame):
                                  command=lambda: self.search(gui, self.searchInput.get()))
         searchButton.grid(row=0, column=2, sticky=E)
 
-        getUpdatesButton = tk.Button(top, text="Get Updates", command=lambda: self.getUpdates())
-        getUpdatesButton.grid(row=0, column=3)
+        # getUpdatesButton = tk.Button(top, text="Get Updates", command=lambda: self.getUpdates())
+        # getUpdatesButton.grid(row=0, column=3)
 
         filterButton = tk.Button(top, text="Filter",
                                  command=lambda: self.filter())
@@ -89,13 +91,22 @@ class SearchPage(tk.Frame):
 
         self.tree = ttk.Treeview(resultsFrame)
 
-        self.tree["columns"] = ("one", "two")
+        self.tree["columns"] = ("owner", "date1", "comment", "number", "date2", "tag")
         self.tree.column("#0", width=100)
-        self.tree.column("one", width=100)
-        self.tree.column("two", width=100)
+        self.tree.column("owner", width=100)
+        self.tree.column("date1", width=100)
+        self.tree.column("comment", width=100)
+        self.tree.column("number", width=100)
+        self.tree.column("date2", width=100)
+        self.tree.column("tag", width=100)
+
         self.tree.heading("#0", text="File Name")
-        self.tree.heading("one", text="File Size")
-        self.tree.heading("two", text="Date")
+        self.tree.heading("owner", text="Owner")
+        self.tree.heading("date1", text="Date")
+        self.tree.heading("comment", text="Comments")
+        self.tree.heading("number", text="Number")
+        self.tree.heading("date2", text="Date")
+        self.tree.heading("tag", text="Tag")
 
         self.tree.pack()
 
@@ -118,6 +129,10 @@ class SearchPage(tk.Frame):
         filedateButton = tk.Button(sortingFrame, text="Date", command=lambda: self.sortByDate())
         filedateButton.pack(ipadx=11)
         self.updateButtonClicked = 0
+
+        self.comment = StringVar()
+        self.commentLabel = tk.Label(self, textvariable=self.comment)
+        self.commentLabel.pack()
 
         #####################################################################
         #####################################################################
@@ -245,13 +260,13 @@ class SearchPage(tk.Frame):
 
     def display_self(self):
         self.getUpdates(PERSONAL)
-        print(self.tree.get_children())
-        print(self.rows)
-        for child in self.rows:
-            if self.tree.item(child, 'values')[2] != "self":
-                self.tree.detach(child)
-            else:
-                self.tree.reattach(child, "", 0)
+        # print(self.tree.get_children())
+        # print(self.rows)
+        # for child in self.rows:
+        #     if self.tree.item(child, 'values')[2] != "self":
+        #         self.tree.detach(child)
+        #     else:
+        #         self.tree.reattach(child, "", 0)
 
     def display_groups(self):
         print(self.rows)
@@ -299,8 +314,24 @@ class SearchPage(tk.Frame):
             print("Error")
 
     def getUpdates(self, group_type):
+        for child in self.tree.get_children():
+            self.tree.delete(child)
+
         if group_type is PERSONAL:
             result = self.client.retrieve_repo([repoids[0]])
+            for tup in result:
+                date = time.gmtime(float(tup[2]))
+                info = str(date[1]) + "/" + str(date[2]) + "/" + str(date[0]) + " " + str(date[3]) + ":" + str(date[4]) + ":" + str(date[5])
+
+                another_date = time.gmtime(int(tup[5]))
+                more_info = str(another_date[1]) + "/" + str(another_date[2]) + "/" + str(another_date[0]) + " " + str(another_date[3]) + ":" + str(another_date[4]) + ":" + str(another_date[5])
+                # print("Year: " + str(time_date[0]))
+                # print("Month: " + str(time_date[1]))
+                # print("Day: " + str(time_date[2]))
+                # print("Hour: " + str(time_date[3]))
+                # print("Minute: " + str(time_date[4]))
+                # print("Second: " + str(time_date[5]))
+                self.tree.insert("", 0, text=tup[0], values=(tup[1], info, tup[3], tup[4], more_info, tup[6]))
             print(result)
         elif group_type is GROUPS:
             pass
@@ -310,21 +341,22 @@ class SearchPage(tk.Frame):
             # Raise an exception
             pass
 
-        for child in self.tree.get_children():
-            self.tree.delete(child)
+        # for child in self.tree.get_children():
+        #     self.tree.delete(child)
 
-        self.tree.insert("", 0, text="lines.txt", values=("5 bytes", "Feb 25th", "self"))
-        self.tree.insert("", 0, text="groups.txt", values=("10 bytes", "Jan 1st", "shared"))
-        self.tree.insert("", 0, text="test.txt", values=("7 bytes", "Feb 4th", "group"))
-        self.tree.insert("", 0, text="picture.jpg", values=("5 bytes", "Mar 21st", "self"))
+        # self.tree.insert("", 0, text="lines.txt", values=("5 bytes", "Feb 25th", "self"))
+        # self.tree.insert("", 0, text="groups.txt", values=("10 bytes", "Jan 1st", "shared"))
+        # self.tree.insert("", 0, text="test.txt", values=("7 bytes", "Feb 4th", "group"))
+        # self.tree.insert("", 0, text="picture.jpg", values=("5 bytes", "Mar 21st", "self"))
 
-        self.rows = self.tree.get_children()
+        # self.rows = self.tree.get_children()
 
     def OnClick(self, event):
         item = self.tree.selection()[0]
         self.filename = self.tree.item(item, 'text')
         print("Clicked on: " + self.tree.item(item, 'text'))
-        print("Additional: " + self.tree.item(item, 'values')[0])
+        print("Comment: " + self.tree.item(item, 'values')[2])
+        self.comment.set("Comment: " + self.tree.item(item, 'values')[2])
 
     def back(self, gui):
         # parameter: gui -> The GUI that is being used.

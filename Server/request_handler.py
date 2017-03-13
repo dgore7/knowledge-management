@@ -71,6 +71,7 @@ class RequestHandler(threading.Thread):
 
                     elif client_option == "retrieve_repo":
                         self.connection.send(SUCCESS)
+                        print('made it')
                         msg = self.connection.recv(1024).decode()
                         print("Retrieving Repo: " + msg)
                         f_ctrlr.retrieve_repo(self.connection, self.parse_request(msg))

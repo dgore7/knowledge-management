@@ -276,7 +276,6 @@ class Client:
         file = open(filename, "rb")
 
         for line in file:
-            print(line)
             connection.send(line)
         connection.send(SOCKET_EOF)
         file.close()
@@ -370,14 +369,22 @@ class Client:
         msg = 'group_ids:' + ','.join(str(gid) for gid in group_ids)
         msg = msg.encode()
         connection.send(msg)
+
+        result = connection.recv(2)
+        if not result == client_api.SUCCESS:
+            print(result)
+            return []
+
         # python string builder pattern
         result = []
         while True:
             bytes_received = connection.recv(1024)
-            if bytes_received:
-                result.append(bytes_received)
-            else: # use socket eof
+            if bytes_received == SOCKET_EOF:
                 break
+            elif bytes_received:
+                result.append(bytes_received)
+
+        print(result)
         result = b''.join(result)
         return pickle.loads(result)
 

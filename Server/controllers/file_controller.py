@@ -85,8 +85,9 @@ def retrieve_file(connection, filename):
 
 @verboseFunc
 def retrieve_repo(connection, query):
-    if 'group_id' not in query:
+    if 'group_ids' not in query:
         connection.send(FAILURE)
+        return
     group_ids = query['group_ids']
     connection.send(SUCCESS)
     result = []
@@ -94,6 +95,7 @@ def retrieve_repo(connection, query):
         result.extend(db.retrieve_repo(int(group_id)))
     pickled_repo = pickle.dumps(result)
     connection.send(pickled_repo)
+    connection.send(SOCKET_EOF)
 
 
 @verboseFunc

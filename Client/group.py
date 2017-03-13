@@ -3,7 +3,7 @@ import tkinter as tk
 from tkinter import TOP, RIGHT, E, END, ACTIVE
 import tkinter.messagebox
 
-import menu
+from Client import menu
 
 
 class GroupPage(tk.Frame):
