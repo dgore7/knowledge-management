@@ -90,7 +90,7 @@ class Client:
 
         isPasswordRight = login.checkPassword()
 
-        login_info = "username:" + username + ";" + "password:" + password + ";"
+        login_info = "username:" + username + ";password:" + password
 
         # print(login_info)
 
@@ -134,11 +134,11 @@ class Client:
         register.setPassword(password)
         username = register.getUsername()
         password = register.getPassword()
-        passwordSalt = str(register.getPasswordSalt())
+        password_salt = str(register.getPasswordSalt())
         #dateTime = register.getDateTime()
 
         register_info = "username:" + username + ";password:" + password + ";sec_question:" \
-                        + sec_question + ";sec_answer:" + sec_answer + "passwordSalt:" + passwordSalt
+                        + sec_question + ";sec_answer:" + sec_answer + ";password_salt:" + password_salt
         connection.send(register_info.encode())
         server_response = connection.recv(2)
         if server_response == client_api.SUCCESS:

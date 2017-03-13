@@ -110,12 +110,12 @@ class LoginEncoding:
     def passwordHashing(self, username, password, saltDB):
         mode = 'utf-8'
         # uses the username as salt
-        usernameSalt = username
+        usernameSalt = str(username)
 
         # adds to the username to make a more secure salt
         salt = usernameSalt + 'This is CSC 376'
 
-        salt = str.encode(salt)
+        # salt = str.encode(salt)
         # store randomSalt with user login info - each user has own random salt
         randomSalt = ''
         if saltDB == '':
@@ -123,8 +123,8 @@ class LoginEncoding:
         else:
             randomSalt = saltDB
 
-        finalSalt = randomSalt + salt
-
+        finalSalt = str(randomSalt) + salt
+        finalSalt = str.encode(finalSalt)
         self.salt = finalSalt
 
         iterations = 22000

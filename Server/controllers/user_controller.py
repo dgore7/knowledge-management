@@ -17,12 +17,13 @@ def register_user(register_info):
     password = register_info['password']
     sec_question = register_info["sec_question"]
     sec_answer = register_info["sec_answer"]
+    password_salt = register_info["password_salt"]
     print("username: " + username)
     print("password: " +password)
     print ("question: " +sec_question)
     print ("answer:" + sec_answer)
     print("Leaving RegisterHandler")
-    repo_id = db.register(username, password, sec_question, sec_answer)
+    repo_id = db.register(username, password, sec_question, sec_answer, password_salt)
     print(repo_id)
     if repo_id:
         os.makedirs(
