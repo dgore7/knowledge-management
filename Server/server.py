@@ -3,6 +3,9 @@ import socket
 import atexit
 from Server.request_handler import RequestHandler
 from Server import connections
+import request_handler
+import __init__
+
 
 import ssl
 from OpenSSL import crypto
@@ -118,7 +121,7 @@ class Server(threading.Thread):
 
     def server_shutdown(self):
         self.is_listening = False
-        for c in connections:
+        for c in __init__.connections:
             c.close()
         try:
             self.server_proc.shutdown(socket.SHUT_WR)

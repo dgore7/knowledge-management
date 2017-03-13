@@ -1,4 +1,4 @@
-from Server import verboseFunc
+# from Server import verboseFunc
 from . import db, SOCKET_EOF
 import os
 
@@ -6,7 +6,7 @@ import os
 import pickle
 from . import db, SUCCESS, FAILURE
 
-@verboseFunc
+# @verboseFunc
 def upload_file(connection, upload_info):
     """
     upload a user's file to the database
@@ -67,7 +67,7 @@ def upload_file(connection, upload_info):
     print("Closed File")
 
 
-@verboseFunc
+# @verboseFunc
 def retrieve_file(connection, filename):
 
     print("Inside RetrieveHandler")
@@ -83,7 +83,7 @@ def retrieve_file(connection, filename):
     print("Leaving RetrieveHandler")
 
 
-@verboseFunc
+# @verboseFunc
 def retrieve_repo(connection, query):
     if 'group_id' not in query:
         connection.send(FAILURE)
@@ -99,13 +99,13 @@ def retrieve_repo(connection, query):
     connection.send(pickled_repo)
 
 
-@verboseFunc
+# @verboseFunc
 def retrieve_personal_repo(connection, uname):
     repo_id = db.get_personal_repo_id(uname)
     retrieve_repo(connection, {'group_id': repo_id})
 
 
-@verboseFunc
+# @verboseFunc
 def delete_file(connection, query):
     print("Inside DeleteHandler")
     if 'filename' not in query or 'group_id' not in query:

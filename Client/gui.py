@@ -15,6 +15,18 @@ from Client import delete
 from Client import client
 
 
+# import group
+# import group_management
+# import start
+# import login
+# import register
+# import menu
+# import upload
+# import search
+# import delete
+# import client
+
+
 class GUI(tk.Tk):
     # Inherites tkinter class
     def __init__(self, user):

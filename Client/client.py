@@ -1,3 +1,5 @@
+#18
+
 import sys
 import socket
 import os
@@ -13,8 +15,8 @@ import ssl
 from Client.client_c import client_api
 from Client import repoids, SOCKET_EOF
 from socket import error as SocketError
-import loginEncryption
-import loginDecryption
+from Client import loginEncryption
+from Client import loginDecryption
 
 
 class Client:
@@ -84,18 +86,17 @@ class Client:
         login = loginDecryption.LoginDecoding(username)
         username = login.getUsername()
 
-        # TODO: Need to get the hashed password and salt from the database with this username
-        # If there is no entry with this username, it means there is no account
-        login.setHashedPassword("hashedPasswordFromDatabase")
-        login.setSalt("saltFromDatabase")
         login.setAttemptedPasswordHash(password)
-
         password = login.getAttemptedPasswordHash()
-        dateTime = login.getDateTime()
 
-        isPasswordRight = login.checkPassword()
+        # FUTURE TODO: Need to get the hashed password and salt from the database with this username
+        # login.setHashedPassword("hashedPasswordFromDatabase")
+        # login.setSalt("saltFromDatabase")
+        # dateTime = login.getDateTime()
 
-        login_info = "username:" + username + ";" + "password:" + password + ";" + "dateTime: " + dateTime
+        # isPasswordRight = login.checkPassword()
+
+        login_info = "username:" + username + ";" + "password:" + password
 
         # print(login_info)
 
@@ -121,22 +122,21 @@ class Client:
         connection = self.sock
         connection.send("register".encode())
 
-        # credentials = LoginEncoding(username, password)
-        # username = credentials.getUsername()
-        # password = credentials.getPassword()
-        # key = credentials.getKey()
 
         register = loginEncryption.LoginEncoding()
         register.setUsername(username)
         register.setPassword(password)
         username = register.getUsername()
         password = register.getPassword()
-        passwordSalt = register.getPasswordSalt()
-        dateTime = register.getDateTime()
 
-        register_info = "username:" + username + ";" + "password:" + password + ";" + "passwordSalt:" + passwordSalt
-        register_info = register_info + ";" + "dateTime:" + dateTime
-        connection.send(register_info.encode())
+        # FUTURE TODO: Store the random password salt and last login date to database
+        # passwordSalt = register.getPasswordSalt()
+        # dateTime = register.getDateTime()
+
+        register_info = "username:" + username + ";" + "password:" + password
+        register_info = register_info.encode()
+
+        connection.send(register_info)
         server_response = connection.recv(2)
         if server_response == client_api.SUCCESS:
             repoids.clear()

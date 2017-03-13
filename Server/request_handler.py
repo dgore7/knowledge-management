@@ -2,11 +2,12 @@ import threading
 
 import struct
 
-from Server import connections
+# from Server import connections
+import __init__
 from socket import SHUT_WR, error as SocketError, errno as SocketErrno
 
-from Server.controllers import SUCCESS, FAILURE, file_controller as f_ctrlr, user_controller as u_ctrlr
-
+# from Server.controllers import SUCCESS, FAILURE, file_controller as f_ctrlr, user_controller as u_ctrlr
+from controllers import SUCCESS, FAILURE, file_controller as f_ctrlr, user_controller as u_ctrlr
 
 
 class RequestHandler(threading.Thread):
@@ -14,7 +15,7 @@ class RequestHandler(threading.Thread):
     def __init__(self, connection):
         threading.Thread.__init__(self)
         self.connection = connection
-        connections.append(self.connection)
+        __init__.connections.append(self.connection)
         self.connected = True
         print("Connection made")
         self.username = ""
@@ -101,7 +102,7 @@ class RequestHandler(threading.Thread):
                 #self.process_request(request)
                 else:
                     print("Empty request body")
-                    connections.remove(self.connection)
+                    __init__.connections.remove(self.connection)
                     try:
                         self.connection.shutdown(SHUT_WR)
                         self.connection.close()

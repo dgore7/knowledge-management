@@ -4,7 +4,8 @@ from tkinter import filedialog
 from tkinter import *
 from tkinter import TOP, E
 
-from Server import home_gui
+# from Server import home_gui
+import home_gui
 
 
 class AboutPage(tk.Frame):

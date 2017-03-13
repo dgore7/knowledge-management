@@ -2,9 +2,13 @@ import os
 import tkinter as tk
 from tkinter import LEFT, BOTTOM
 
-from Server import gui
-from Server import settings_gui
-from Server import server
+# from Server import gui
+# from Server import settings_gui
+# from Server import server
+
+import gui
+import settings_gui
+import server
 
 
 class HomePage(tk.Frame):

@@ -1,4 +1,5 @@
-# Decryption class for decrypting a file 
+# Decryption class for decrypting a file
+#25
 
 import os
 import random
@@ -44,7 +45,7 @@ class fileDecoding:
             block = inputFile.read(blocksize)
             if len(block) == 0:
                 break
-            outfile.write(decrypt.decrypt(block))
+            outputFile.write(decrypt.decrypt(block))
 
         outputFile.truncate(size)
 

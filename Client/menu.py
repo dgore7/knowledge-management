@@ -11,6 +11,8 @@ from Client import group
 from Client import group_management
 
 
+
+
 class MenuPage(tk.Frame):
     def __init__(self, frame, gui):
         tk.Frame.__init__(self, frame)

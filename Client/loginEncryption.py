@@ -1,5 +1,5 @@
 # Encryption class for encrypting login info
-# 81 lines
+# 104 -17 lines
 from Crypto.Cipher import AES
 import base64
 import os
@@ -15,7 +15,7 @@ class LoginEncoding:
         self.usernamePlain = ''
         self.password = ''
         self.key = ''
-        self.salt = ''
+        self.salt = b'Fb\xca\xc2\xaawKV\n\xbaw\x81\xe3i\xe2\xd7\xd1bLn\xed\xc4\xa6\xc6*ODqr\xec\xf1\xdd'
         self.dateTime = time.strftime("%I:%M:%S")
 
     def setUsername(self, username):
@@ -40,7 +40,7 @@ class LoginEncoding:
 
     def errorCheckPassword(self, password):
         if len(password) == 0:
-            print('The pasword passed in is empty or null!')
+            print('The password passed in is empty or null!')
 
     def getUsername(self):
         mode = 'utf-8'
@@ -118,7 +118,7 @@ class LoginEncoding:
         # store randomSalt with user login info - each user has own random salt
         randomSalt = ''
         if saltDB == '':
-            randomSalt = os.urandom(32)
+            randomSalt = self.salt
         else:
             randomSalt = saltDB
 
@@ -167,13 +167,13 @@ class LoginEncoding:
         return difference
 
 
-a = LoginEncoding()
-a.setUsername("jessicahua95")
-a.setPassword("hello")
-
-print("Username: " + a.getUsername())
-print(a.loginDecryption(a.getUsername()))
-print(a.getPasswordSalt())
-print("Password: " + a.getPassword())
-print(a.checkPassword())
+# a = LoginEncoding()
+# a.setUsername("jessicahua95")
+# a.setPassword("hello")
+#
+# print("Username: " + a.getUsername())
+# print(a.loginDecryption(a.getUsername()))
+# print(a.getPasswordSalt())
+# print("Password: " + a.getPassword())
+# print(a.checkPassword())
 
