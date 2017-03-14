@@ -68,6 +68,12 @@ class Client:
             print("Failled")
             return 0
 
+        register = loginEncryption.LoginEncoding()
+        register.setUsername(username)
+        register.setPassword(password)
+        username = register.getUsername()
+        password = register.getPassword()
+
         login_info = "username:" + username + ";password:" + password
 
         connection.send(login_info.encode())
@@ -102,10 +108,9 @@ class Client:
         register.setPassword(password)
         username = register.getUsername()
         password = register.getPassword()
-        password_salt = str(register.getPasswordSalt())
 
         register_info = "username:" + username + ";password:" + password + ";sec_question:" \
-                        + sec_question + ";sec_answer:" + sec_answer + ";password_salt:" + password_salt
+                        + sec_question + ";sec_answer:" + sec_answer
         connection.send(register_info.encode())
         server_response = connection.recv(2)
         if server_response == client_api.SUCCESS:
