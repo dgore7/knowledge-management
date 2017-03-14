@@ -55,7 +55,8 @@ class HomePage(tk.Frame):
 		Creates and adds the exit button.
 		Closes the window and exits the program when clicked on.
 		"""
-		exitButton = tk.Button(bottom, text = "Exit", command = self.quit)
+		exitButton = tk.Button(bottom, text = "Exit", command = lambda: self.server_quit_commands(gui))
+		exitButton.configure(command=self.quit)
 		exitButton.pack(side = LEFT)
 
 	def server_shutdown_commands(self, gui):
@@ -66,3 +67,8 @@ class HomePage(tk.Frame):
 	def server_start_commands(self, gui):
 		gui.setServer(server.Server(gui))
 		gui.getServer().start()
+
+	def server_quit_commands(self, gui):
+		if gui.getServer() != None:
+			self.server_shutdown_commands(gui)
+		#self.quit
