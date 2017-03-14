@@ -27,7 +27,7 @@ class Server(threading.Thread):
     def run(self):
         self.server_proc = self.create_secure_socket(os.path.normpath(os.path.join(os.getcwd(), '..')), 'localhost', 8001)
         # server = create_socket(sys.argv[1] if len(sys.argv) >= 2 else 8001)
-        atexit.register(self.server_shutdown, self.server_proc)
+        atexit.register(self.server_shutdown)#, self.server_proc)
         self.server_proc.listen(10)
         self.server_loop()
 
@@ -47,12 +47,20 @@ class Server(threading.Thread):
         context.check_hostname = False # Hostname verification on certs (Dont want for now)
         context.load_default_certs(purpose=ssl.Purpose.CLIENT_AUTH) # Load the public CA certs for the server socket (need CLIENT_AUTH param)
         self.generate_server_self_cert(cert_dir)
-        context.load_cert_chain(join(cert_dir, "KnowledgeManagement.crt"), keyfile=join(cert_dir, "KnowledgeManagement.key")) # TODO FIX THE certfile path!!!!!!!!!!
+        context.load_cert_chain(join(cert_dir, "KnowledgeManagement.crt"), keyfile=join(cert_dir, "KnowledgeManagement.key"))
+
+        # Create the secure socket that will be listening for connections.
+        # Note that the SSL handshake is NOT performed upon connection so the server can securely transfer the cert
+        # if required.
         self.server_proc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_proc.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         secureSocket = context.wrap_socket(self.server_proc, server_side=True)
         secureSocket.bind((host, port))
         print("SSL Server started on {}:{}".format(host, port))
+
+        #self.server_negotiate_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        #self.server_negotiate_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        #self.server_negotiate_sock.bind((host, port+1))
         self.is_listening=True
         return secureSocket
 
@@ -101,6 +109,8 @@ class Server(threading.Thread):
             try:
                 sock, addr = self.server_proc.accept()
                 print("Recieved new connection from {}.".format(addr))
+
+                 # TODO: Change request handler call to pass in the certificate mode
                 connections.append(sock) #append to dictionary and log whether they are logged in
                 handler = RequestHandler(sock)
                 handler.start()

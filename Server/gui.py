@@ -83,7 +83,10 @@ class GUI(tk.Tk):
 		self.server = server
 
 	def getServer(self):
-		return self.server
+		if getattr(self, "server", None) == None:
+			return None
+		else:
+			return self.server
 
 if __name__ == '__main__':
 	#server.start()

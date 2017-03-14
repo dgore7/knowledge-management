@@ -26,7 +26,6 @@ class DB:
              password   TEXT              NOT NULL,
              question   TEXT                      ,
              answer     TEXT                      ,
-             salt       TEXT              NOT NULL,
              repo_id    INTEGER           NOT NULL,
              FOREIGN KEY (repo_id) REFERENCES GROUPS(id));''')
 
@@ -109,27 +108,10 @@ class DB:
         if user is None:
             return None
         elif user[0] == username:
-            return user[5]
-
-    def get_hashinfo(self, username):
-        """
-        Grabs the randomly generated salt from the database
-
-        :param username: string
-        :return: dictionary
-        """
-
-        cursor = self.conn.cursor()
-        cursor.execute("SELECT salt, password FROM USER WHERE username=?", (username,))
-
-        result = cursor.fetchone()
-        salt = result[0]
-        password = result[1]
-        hash_dic = {"salt":salt, "password": password}
-        return hash_dic
+            return user[4]
 
 
-    def register(self, username, pword, sec_question, sec_answer, password_salt):
+    def register(self, username, pword, sec_question, sec_answer):
         """
         Attempts to enter a new username and pword into the USERS table
 
@@ -146,8 +128,8 @@ class DB:
             c.execute("INSERT INTO GROUPS(groupname, user_created) VALUES(?,?)", (username + "_personal_repo", False))
             gid = c.lastrowid
             print(type(gid))
-            c.execute("INSERT INTO USER(username, password, question, answer, salt, repo_id) VALUES(?,?,?,?,?,?)", (username, pword, sec_question,
-                                                                                            sec_answer, password_salt ,gid))
+            c.execute("INSERT INTO USER(username, password, question, answer, repo_id) VALUES(?,?,?,?,?)", (username, pword, sec_question,
+                                                                                            sec_answer,gid))
             c.execute("INSERT INTO USER_GROUP(group_id, username) VALUES(?,?)", (gid, username))
             self.conn.commit()
             result = gid
