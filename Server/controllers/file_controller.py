@@ -28,7 +28,7 @@ def upload_file(connection, upload_info):
     if group_id != 0:
         owner = db.get_username(group_id)
     else:
-        owner = 'DUMMY_SHARED_USER'
+        owner = 'SHARED'
     db.upload(filename, tags, owner, group_id, notes, mod_time, file_size)
 
     if db.__contains__(filename,owner):

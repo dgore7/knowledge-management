@@ -30,6 +30,9 @@ class GroupManagementPage(tk.Frame):
                                                                                      self.memberEntry.get()))
         addButton.grid(row=0, column=2)
 
+        self.list_frame = tk.Frame(self)
+        self.list_frame.pack()
+
         middle = tk.Frame(self)
         middle.pack()
 
@@ -39,14 +42,11 @@ class GroupManagementPage(tk.Frame):
         self.list_members = tk.Listbox(middle)
         self.list_members.pack()
 
+        backButton = tk.Button(middle, text="Back", command=lambda: self.back(gui))
+        backButton.pack(side=RIGHT)
+
         removeButton = tk.Button(middle, text="Remove", command=lambda: self.removeMember(gui))
         removeButton.pack(side=RIGHT)
-
-        bottom = tk.Frame(self)
-        bottom.pack()
-
-        backButton = tk.Button(bottom, text="Back", command=lambda: self.back(gui))
-        backButton.pack()
 
     def addMember(self, gui, member_name):
         print(self.var.get())
@@ -113,6 +113,6 @@ class GroupManagementPage(tk.Frame):
             self.var.set(" ")
         print(self.list_groups)
 
-        self.group_names = tk.OptionMenu(self, self.var, *[tup[1] for tup in self.list_groups]
+        self.group_names = tk.OptionMenu(self.list_frame, self.var, *[tup[1] for tup in self.list_groups]
                                                                 if self.list_groups else " ")
         self.group_names.pack()

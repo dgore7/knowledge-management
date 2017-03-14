@@ -69,7 +69,7 @@ class DB:
                               VALUES (?,?,?)""", (0, 'SHARED_KM_REPO', False))
 
         self.conn.execute(""" INSERT OR IGNORE INTO USER(username, password, repo_id)
-                              VALUES (?,?,?)""", ('DUMMY_SHARED_USER', 'LOL NO PASS', 0))
+                              VALUES (?,?,?)""", ('SHARED', 'LOL NO PASS', 0))
 
 
         path_exists = os.path.exists(

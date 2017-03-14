@@ -49,11 +49,11 @@ class SearchPage(tk.Frame):
 
         self.clicked = 0
 
-        self.monthText = tk.Label(top, text="Month")
-        self.monthEntry = tk.Entry(top)
+        self.dateText = tk.Label(top, text="Date")
+        self.dateEntry = tk.Entry(top)
 
-        self.keywordsText = tk.Label(top, text="Keywords")
-        self.keywordsEntry = tk.Entry(top)
+        self.tagText = tk.Label(top, text="Tag")
+        self.tagEntry = tk.Entry(top)
 
         self.updateButton = tk.Button(top, text="Update",
                                       command=lambda: self.updateSearch())
@@ -156,34 +156,36 @@ class SearchPage(tk.Frame):
         self.group_names.pack_forget()
 
     def updateSearch(self):
-        if self.monthEntry.get():
+        if self.dateEntry.get():
             for child in self.tree.get_children():
-                if self.monthEntry.get() not in self.tree.item(child, 'values')[1]:
-                    self.tree.detach(child)
-        if self.keywordsEntry.get():
-            print(self.keywordsEntry.get())
+                if self.dateEntry.get() not in self.tree.item(child, 'values')[1]:
+                    self.tree.delete(child)
+        if self.tagEntry.get():
+            for child in self.tree.get_children():
+                if self.dateEntry.get() not in self.tree.item(child, 'values')[4]:
+                    self.tree.delete(child)
 
-        self.monthEntry.delete(0, 'end')
-        self.keywordsEntry.delete(0, 'end')
+        self.dateEntry.delete(0, 'end')
+        self.tagEntry.delete(0, 'end')
 
     def filter(self):
         self.clicked += 1
         if self.clicked % 2 == 1:
-            self.monthText.grid(row=3, sticky=E)
-            self.monthEntry.grid(row=3, column=1)
-            self.keywordsText.grid(row=4, sticky=E)
-            self.keywordsEntry.grid(row=4, column=1)
+            self.dateText.grid(row=3, sticky=E)
+            self.dateEntry.grid(row=3, column=1)
+            self.tagText.grid(row=4, sticky=E)
+            self.tagEntry.grid(row=4, column=1)
             self.updateButton.grid(row=4, column=2)
 
         else:
-            self.monthText.grid_forget()
-            self.monthEntry.grid_forget()
-            self.keywordsText.grid_forget()
-            self.keywordsEntry.grid_forget()
+            self.dateText.grid_forget()
+            self.dateEntry.grid_forget()
+            self.tagText.grid_forget()
+            self.tagEntry.grid_forget()
             self.updateButton.grid_forget()
 
-            self.monthEntry.delete(0, 'end')
-            self.keywordsEntry.delete(0, 'end')
+            self.dateEntry.delete(0, 'end')
+            self.tagEntry.delete(0, 'end')
 
     def search(self, gui, filename):
         # response = gui.getClient().search(filename)
@@ -270,7 +272,7 @@ class SearchPage(tk.Frame):
         elif group_type is GROUPS:
             repo_id = self.get_repo_id()
             if repo_id:
-                result = self.client.retrieve_repo()
+                result = self.client.retrieve_repo([repo_id])
         elif group_type is SHARED:
             result = self.client.retrieve_repo([SHARED_REPO_ID])
         elif group_type is ALL:
@@ -281,16 +283,6 @@ class SearchPage(tk.Frame):
             # Raise an exception
             pass
         self.display_files(result)
-
-        # for child in self.tree.get_children():
-        #     self.tree.delete(child)
-
-        # self.tree.insert("", 0, text="lines.txt", values=("5 bytes", "Feb 25th", "self"))
-        # self.tree.insert("", 0, text="groups.txt", values=("10 bytes", "Jan 1st", "shared"))
-        # self.tree.insert("", 0, text="test.txt", values=("7 bytes", "Feb 4th", "group"))
-        # self.tree.insert("", 0, text="picture.jpg", values=("5 bytes", "Mar 21st", "self"))
-
-        # self.rows = self.tree.get_children()
 
     def OnClick(self, event):
         item = self.tree.selection()[0]
