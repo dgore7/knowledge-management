@@ -1,45 +1,30 @@
-import sys
-import socket
 import os
-import struct
-
 import pickle
-
-from pickle import UnpicklingError
-
-from Client import client_c, SUCCESS, FAILURE, global_username
-from Client.client_c import client_api
-import codecs
+import socket
 import ssl
-# from Client import auth_client
-from Client.client_c import client_api
-from Client import repoids, SOCKET_EOF
+import struct
+import sys
+from pickle import UnpicklingError
 from socket import error as SocketError
+
+from Client import SUCCESS, FAILURE, global_username
+from Client import loginEncryption
+from Client import repoids, SOCKET_EOF
+from Client.client_c import client_api
 
 
 class Client:
+    """Main file on client side"""
+
     def __init__(self):
+        'Intilizes the client'
         self.connected = False
-
-        # TODO: NEED TO ADD CODE TO IMPORT A PUB KEY (or cert) WHICH WE WILL PUT IN THE CLIENT FILES AHEAD OF TIME!
-
-        # self.sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-        # self.sock.connect((host,port))
-        # TODO: ALTER ROUTINES TO INSTEAD CONNECT USING A CONNECT BUTTON. THEN CERTS CAN BE SET BEFOREHAND!
         self.connect()
         print("Initialized")
-        # message = "query:" + sys.stdin.readline()
-        # self.sock.send(message.encode())
 
     def connect(self, cert_file_path=os.path.normpath(os.path.join(os.getcwd(), '../KnowledgeManagement.crt')),
                 host='localhost', port=8001):
-        # parameter: host -> The desired host for the new connection.
-        # parameter: port -> The desired port for the new connection.
-        # parameter: use_ssl -> Can be set to False to disable SSL for the client connecting
-
-        # Code to get the server's cert
-        # We need this to verify it (the cert is its own root)
-        # cert = conn.getpeercert()
+        """Creates a secure socket layer (SSL) connection after verifying the certificate"""
 
         if not self.connected:
             context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)  # Defaults to SSL/TLS support
@@ -59,6 +44,8 @@ class Client:
             print("Client already connected to a server! Disconnect first.")
 
     def disconnect(self):
+        """Closes the client's connection to the socket"""
+
         if self.connected:
             try:
                 self.sock.shutdown(socket.SHUT_WR)
@@ -72,22 +59,19 @@ class Client:
             print("Nothing to disconnect!")
 
     def login(self, username, password):
+        """Takes the login information, ecrypts it, and prepares it to be sent to the server."""
+
         connection = self.sock
         connection.send("login".encode())
-        print("Hello")
         status_code = connection.recv(2)
-        print("MSG Replayed")
         if status_code != client_api.SUCCESS:
             print("Failled")
             return 0
 
-        login_info = "username:" + username + ";" + "password:" + password
-
-        # print(login_info)
+        login_info = "username:" + username + ";password:" + password
 
         connection.send(login_info.encode())
-        # self.sock.send(login_info.encode())
-        # connection.close()
+
         server_response = connection.recv(2)  # SUCCESS or FAILURE
         print(server_response.decode())
         if server_response == client_api.SUCCESS:
@@ -100,22 +84,28 @@ class Client:
         else:
             return 0
 
+
         global_username.clear()
         global_username.append(username)
         return 1
 
-    def register(self, username, password):
+    def register(self, username, password, sec_question, sec_answer):
+        """Takes the parameters, hashes the password, encodes the username, and prepares it to be sent to server"""
+
         if self.connected == False:
-            return 0  # Maybe change to a unique code stating we are not connected?
+            return 0
         connection = self.sock
         connection.send("register".encode())
 
-        # credentials = LoginEncoding(username, password)
-        # username = credentials.getUsername()
-        # password = credentials.getPassword()
-        # key = credentials.getKey()
+        register = loginEncryption.LoginEncoding()
+        register.setUsername(username)
+        register.setPassword(password)
+        username = register.getUsername()
+        password = register.getPassword()
+        password_salt = str(register.getPasswordSalt())
 
-        register_info = "username:" + username + ";" + "password:" + password
+        register_info = "username:" + username + ";password:" + password + ";sec_question:" \
+                        + sec_question + ";sec_answer:" + sec_answer + ";password_salt:" + password_salt
         connection.send(register_info.encode())
         server_response = connection.recv(2)
         if server_response == client_api.SUCCESS:
@@ -133,6 +123,12 @@ class Client:
         return 1
 
     def createGroup(self, group, members):
+        """
+        Takes the name of a group, and iterates through a list of usernames to add to the group.
+        :param group: string
+        :param members: list
+        :return:
+        """
         connection = self.sock
 
         connection.send("create_group".encode())
@@ -166,6 +162,12 @@ class Client:
 
 
     def addMember(self, member_name):
+        """
+        Takes a username and adds it to the group that it used within.
+
+        :param member_name:
+        :return:
+        """
         connection = self.sock
         message = "member_add".encode()
         connection.send(message)
