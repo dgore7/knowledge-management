@@ -72,7 +72,12 @@ class GUI(tk.Tk):
         Chooses the frame from the dictionary and displays it on the window.
         """
         frame = self.frames[display]
+        try:  # god forgive me for my sins
+            frame.on_show()
+        except AttributeError:
+            pass  # not the group_management frame
         frame.tkraise()
+
 
     def getClient(self):
         return self.user
@@ -81,6 +86,6 @@ class GUI(tk.Tk):
 if __name__ == '__main__':
     user = client.Client()
     app = GUI(user)
-    app.geometry("600x500")
+    app.geometry("1000x500")
     app.mainloop()
     user.disconnect()
