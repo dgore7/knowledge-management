@@ -6,7 +6,7 @@
 
 """ All the sqlite3 functions needed for querying the db (encapsulates the sql code)
     DB object used by the data_retriever"""
-
+import os
 import sqlite3
 import threading
 import time
@@ -24,8 +24,12 @@ class DB:
         self.conn.execute('''CREATE TABLE IF NOT EXISTS USER
             (username   TEXT PRIMARY KEY  NOT NULL,
              password   TEXT              NOT NULL,
+             question   TEXT                      ,
+             answer     TEXT                      ,
+             salt       TEXT              NOT NULL,
              repo_id    INTEGER           NOT NULL,
              FOREIGN KEY (repo_id) REFERENCES GROUPS(id));''')
+
 
         self.conn.execute('''CREATE TABLE IF NOT EXISTS FILE
             (filename   TEXT NOT NULL,
@@ -60,6 +64,28 @@ class DB:
              FOREIGN KEY (tagname)  REFERENCES TAG(tagname) ON DELETE CASCADE ,
              PRIMARY KEY (filename, tagname));''')
 
+        self.conn.execute(""" INSERT OR IGNORE INTO GROUPS(id, groupname, user_created)
+                              VALUES (?,?,?)""", (0, 'SHARED_KM_REPO', False))
+
+        self.conn.execute(""" INSERT OR IGNORE INTO USER(username, password, repo_id)
+                              VALUES (?,?,?)""", ('DUMMY_SHARED_USER', 'LOL NO PASS', 0))
+
+
+        path_exists = os.path.exists(
+            os.path.normpath(
+                os.path.join(
+                    os.getcwd(),
+                    'FILE_REPO',
+                    'SHARED_KM_REPO')))
+
+        if not path_exists:
+            os.makedirs(
+                os.path.normpath(
+                    os.path.join(
+                        os.getcwd(),
+                        'FILE_REPO',
+                        'SHARED_KM_REPO')))
+
         self.conn.commit()
 
     def login(self, username, pword):
@@ -82,9 +108,27 @@ class DB:
         if user is None:
             return None
         elif user[0] == username:
-            return user[2]
+            return user[5]
 
-    def register(self, username, pword):
+    def get_hashinfo(self, username):
+        """
+        Grabs the randomly generated salt from the database
+
+        :param username: string
+        :return: dictionary
+        """
+
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT salt, password FROM USER WHERE username=?", (username,))
+
+        result = cursor.fetchone()
+        salt = result[0]
+        password = result[1]
+        hash_dic = {"salt":salt, "password": password}
+        return hash_dic
+
+
+    def register(self, username, pword, sec_question, sec_answer, password_salt):
         """
         Attempts to enter a new username and pword into the USERS table
 
@@ -100,7 +144,9 @@ class DB:
         try:
             c.execute("INSERT INTO GROUPS(groupname, user_created) VALUES(?,?)", (username + "_personal_repo", False))
             gid = c.lastrowid
-            c.execute("INSERT INTO USER(username, password, repo_id) VALUES(?,?,?)", (username, pword, gid))
+            print(type(gid))
+            c.execute("INSERT INTO USER(username, password, question, answer, salt, repo_id) VALUES(?,?,?,?,?,?)", (username, pword, sec_question,
+                                                                                            sec_answer, password_salt ,gid))
             c.execute("INSERT INTO USER_GROUP(group_id, username) VALUES(?,?)", (gid, username))
             self.conn.commit()
             result = gid
@@ -126,26 +172,57 @@ class DB:
             return 0, None
         return cursor.rowcount, gid
 
+
+    def delete_group(self, gname, members):
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute("DELETE FROM GROUPS WHERE groupname=?", (gname))
+        except sqlite3.error as e:
+            print ('Error in delete_group', e)
+        return cursor.rowcount == 1
+
     def add_user_to_group(self, gid, uname):
         cursor = self.conn.cursor()
+        self.lock.acquire()
         try:
             cursor.execute("INSERT OR IGNORE INTO USER_GROUP(group_id, username) VALUES(?,?)",
-                               (gid, uname))
+                           (gid, uname))
             self.conn.commit()
         except sqlite3.Error as e:
             print('Error in add_user_to_group', e)
+        finally:
+            self.lock.release()
 
         return cursor.rowcount == 1
 
+    def does_user_exists(self, uname):
+        cursor = self.conn.cursor()
+        try:
+            cursor.execute("SELECT * FROM USER WHERE username=?", (uname,))
+        except Exception:
+            pass
+        result = cursor.fetchone()
+        resultlen = len(result)
+        if resultlen != 0:
+            return True
+        else:
+            return False
+
     def delete_user_from_group(self, gid, uname):
         cursor = self.conn.cursor()
+        self.lock.acquire()
         try:
             cursor.execute("DELETE FROM USER_GROUP WHERE username=? AND group_id=?",
                                (uname, gid))
             self.conn.commit()
         except sqlite3.Error as e:
             print('Error in add_user_to_group', e)
-        return cursor.rowcount == 1
+        finally:
+            self.lock.release()
+        if cursor.rowcount == 1:
+            return True
+        else:
+            return False
 
     def retrieve_repo(self, gid):
         cursor = self.conn.cursor()
@@ -205,10 +282,24 @@ class DB:
                                   (file_name, group_id, tag))
             self.conn.commit()
         except sqlite3.Error as e:
-            print("An Error Occured in upload: " + str(e.args) + "\n\t\t all vars = " + str(locals()))
+            print("An Error occurred in upload: " + str(e.args) + "\n\t\t all vars = " + str(locals()))
 
     def get_personal_repo_id(self, uname):
         return self.conn.execute('SELECT repo_id FROM USER WHERE username=?', (uname,)).fetchone()[0]
+
+    def get_groups(self, uname):
+        cursor = self.conn.cursor()
+        try:
+            cursor.execute("""SELECT GROUPS.id, GROUPS.groupname FROM
+                              GROUPS INNER JOIN USER_GROUP
+                              ON GROUPS.id = USER_GROUP.group_id
+                              WHERE username = ? AND
+                              GROUPS.groupname NOT LIKE '%personal_repo'
+                            """,
+                            (uname,))
+        except Exception as e:
+            print(e)
+        return cursor.fetchall()
 
     def delete(self, fname, gid):
         """

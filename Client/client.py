@@ -1,43 +1,30 @@
-import sys
-import socket
 import os
-import struct
-
 import pickle
-
-from Client import client_c
-from Client.client_c import client_api
-import codecs
+import socket
 import ssl
-# from Client import auth_client
-from Client.client_c import client_api
-from Client import repoids, SOCKET_EOF
+import struct
+import sys
+from pickle import UnpicklingError
 from socket import error as SocketError
+
+from Client import SUCCESS, FAILURE, global_username
+from Client import loginEncryption
+from Client import repoids, SOCKET_EOF
+from Client.client_c import client_api
 
 
 class Client:
+    """Main file on client side"""
+
     def __init__(self):
+        'Intilizes the client'
         self.connected = False
-
-        # TODO: NEED TO ADD CODE TO IMPORT A PUB KEY (or cert) WHICH WE WILL PUT IN THE CLIENT FILES AHEAD OF TIME!
-
-        # self.sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-        # self.sock.connect((host,port))
-        # TODO: ALTER ROUTINES TO INSTEAD CONNECT USING A CONNECT BUTTON. THEN CERTS CAN BE SET BEFOREHAND!
         self.connect()
         print("Initialized")
-        # message = "query:" + sys.stdin.readline()
-        # self.sock.send(message.encode())
 
     def connect(self, cert_file_path=os.path.normpath(os.path.join(os.getcwd(), '../KnowledgeManagement.crt')),
                 host='localhost', port=8001):
-        # parameter: host -> The desired host for the new connection.
-        # parameter: port -> The desired port for the new connection.
-        # parameter: use_ssl -> Can be set to False to disable SSL for the client connecting
-
-        # Code to get the server's cert
-        # We need this to verify it (the cert is its own root)
-        # cert = conn.getpeercert()
+        """Creates a secure socket layer (SSL) connection after verifying the certificate"""
 
         if not self.connected:
             context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)  # Defaults to SSL/TLS support
@@ -57,6 +44,8 @@ class Client:
             print("Client already connected to a server! Disconnect first.")
 
     def disconnect(self):
+        """Closes the client's connection to the socket"""
+
         if self.connected:
             try:
                 self.sock.shutdown(socket.SHUT_WR)
@@ -70,22 +59,19 @@ class Client:
             print("Nothing to disconnect!")
 
     def login(self, username, password):
+        """Takes the login information, ecrypts it, and prepares it to be sent to the server."""
+
         connection = self.sock
         connection.send("login".encode())
-        print("Hello")
         status_code = connection.recv(2)
-        print("MSG Replayed")
         if status_code != client_api.SUCCESS:
             print("Failled")
             return 0
 
-        login_info = "username:" + username + ";" + "password:" + password
-
-        # print(login_info)
+        login_info = "username:" + username + ";password:" + password
 
         connection.send(login_info.encode())
-        # self.sock.send(login_info.encode())
-        # connection.close()
+
         server_response = connection.recv(2)  # SUCCESS or FAILURE
         print(server_response.decode())
         if server_response == client_api.SUCCESS:
@@ -95,22 +81,31 @@ class Client:
             repo_id = repo_id_tup[0]
             repoids.append(repo_id)
             print(repo_id)
-            return 1
         else:
             return 0
 
-    def register(self, username, password):
+
+        global_username.clear()
+        global_username.append(username)
+        return 1
+
+    def register(self, username, password, sec_question, sec_answer):
+        """Takes the parameters, hashes the password, encodes the username, and prepares it to be sent to server"""
+
         if self.connected == False:
-            return 0  # Maybe change to a unique code stating we are not connected?
+            return 0
         connection = self.sock
         connection.send("register".encode())
 
-        # credentials = LoginEncoding(username, password)
-        # username = credentials.getUsername()
-        # password = credentials.getPassword()
-        # key = credentials.getKey()
+        register = loginEncryption.LoginEncoding()
+        register.setUsername(username)
+        register.setPassword(password)
+        username = register.getUsername()
+        password = register.getPassword()
+        password_salt = str(register.getPasswordSalt())
 
-        register_info = "username:" + username + ";" + "password:" + password
+        register_info = "username:" + username + ";password:" + password + ";sec_question:" \
+                        + sec_question + ";sec_answer:" + sec_answer + ";password_salt:" + password_salt
         connection.send(register_info.encode())
         server_response = connection.recv(2)
         if server_response == client_api.SUCCESS:
@@ -120,75 +115,94 @@ class Client:
             repo_id = repo_id_tup[0]
             repoids.append(repo_id)
             print(repo_id)
-            return 1
         else:
             return 0
 
+        global_username.clear()
+        global_username.append(username)
+        return 1
+
     def createGroup(self, group, members):
+        """
+        Takes the name of a group, and iterates through a list of usernames to add to the group.
+        :param group: string
+        :param members: list
+        :return:
+        """
         connection = self.sock
 
         connection.send("create_group".encode())
 
         status_code = connection.recv(2)
 
-        if status_code.decode() != "OK":
+        if status_code != SUCCESS:
             print("Error")
-            return
+            return -1
+        message = []
+        message.append("gname:")
+        message.append(group)
+        message.append(";")
+        message.append("members:")
+        for i in members:
+            message.append(i)
+            message.append(",")
+        if members:
+            message.pop()
+        message = ''.join(message)
+        message = message.encode()
+        connection.send(message)
+        result = connection.recv(2)
+        if result != SUCCESS:
+            return -1
 
-        connection.send(group.encode())
+        packed_gid = connection.recv(4)
+        gid = struct.unpack("<L", packed_gid)
+        repoids.append(gid)
+        return 1
 
-        status_code = connection.recv(7)
-
-        if status_code.decode() != "SUCCESS":
-            print("Error")
-            return
-
-        for member in members:
-            connection.send(member.encode())
-            connection.recv(5)
-
-        connection.send("DONE".encode())
-
-
-        print(group)
-        print(members)
-        connection.close()
-
-        return "SUCCESS"
 
     def addMember(self, member_name):
-        connection = self.sock
+        """
+        Takes a username and adds it to the group that it used within.
 
-        connection.send("addMemGrp".encode())
+        :param member_name:
+        :return:
+        """
+        connection = self.sock
+        message = "member_add".encode()
+        connection.send(message)
         status_code = connection.recv(2)
 
-        if status_code.decode() != "OK":
+        if status_code != FAILURE:
             print("Error")
-            return
+            return False
 
-        connection.send(member_name.encode())
-
-        connection.close()
-
-        return "SUCCESS"
+        message = member_name.encode()
+        connection.send(message)
+        result = connection.recv(2)
+        if result == SUCCESS:
+            return True
+        else:
+            return False
 
     def removeMember(self, member_name):
         connection = self.sock
 
-        connection.send("removeMemGrp".encode())
+        connection.send("member_remove".encode())
 
         status_code = connection.recv(2)
 
-        if status_code.decode() != "OK":
+        if status_code != SUCCESS:
             print("Error")
-            return
+            return False
 
-        connection.send(member_name.encode())
-
-        connection.close()
-
-        return "SUCCESS"
-
+        message = member_name.encode()
+        connection.send(message)
+        result = connection.recv(2)
+        if result == SUCCESS:
+            return True
+        else:
+            return False
 
     def upload(self, filename, tags, notes, repo):
         try:
@@ -212,6 +226,7 @@ class Client:
         msg.extend(['notes:', notes, ';'])
         print(tags)
         msg.extend(['mod_time:', mod_time, ';'])
+        ######### Add statements to determine where to upload
         msg.extend(['gid:', repo, ';'])
         tags_buffer = ['tags:']
         tags_buffer.extend(tag + ',' for tag in tags)
@@ -276,7 +291,6 @@ class Client:
         file = open(filename, "rb")
 
         for line in file:
-            print(line)
             connection.send(line)
         connection.send(SOCKET_EOF)
         file.close()
@@ -358,28 +372,68 @@ class Client:
         print(filename)
         # sock.close()
 
-    def retrieve_repo(self, group_id=None, username=None):
+    def retrieve_repo(self, group_ids=None):
         connection = self.sock
-        if not group_id and not username:
+        if not group_ids:
             raise RuntimeError('Arguements required')
-        connection.send("retrieve repo".encode())
-        result = connection.recv(1024).decode()
+        connection.send("retrieve_repo".encode())
+        result = connection.recv(2)
         if not result == client_api.SUCCESS:
             print(result)
             return []
-        if group_id:
-            connection.send(str(group_id).encode())
-        elif username:
-            connection.send(username.encode())
+        msg = 'group_ids:' + ','.join(str(gid) for gid in group_ids)
+        msg = msg.encode()
+        connection.send(msg)
+
+        result = connection.recv(2)
+        if not result == client_api.SUCCESS:
+            print(result)
+            return []
+
+        # python string builder pattern
         result = []
         while True:
             bytes_received = connection.recv(1024)
-            if bytes_received:
-                result.append(bytes_received)
-            else:
+            if bytes_received == SOCKET_EOF:
                 break
+            elif bytes_received:
+                result.append(bytes_received)
+
+        print(result)
         result = b''.join(result)
         return pickle.loads(result)
+
+    def retrieve_groups(self, username):
+        connection = self.sock
+        connection.send("groups_retrieve".encode())
+        result = connection.recv(1024)
+
+        if result != SUCCESS:
+            print("failed in retrieve groups1")
+            return []
+
+        message = "username:" + username
+        message = message.encode()
+        connection.send(message)
+        result = connection.recv(2)
+
+        if result != SUCCESS:
+            print("failed in retrieve groups2")
+            return []
+
+        chunks = []
+        while True:
+            bytes_received = connection.recv(1024)
+            if bytes_received == SOCKET_EOF:
+                break
+            else:
+                chunks.append(bytes_received)
+        result = b''.join(chunks)
+        try:
+            groups = pickle.loads(result)
+        except UnpicklingError:
+            return []
+        return groups
 
     def search(self, filename):
         connection = self.sock

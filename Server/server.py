@@ -109,9 +109,9 @@ class Server(threading.Thread):
             try:
                 sock, addr = self.server_proc.accept()
                 print("Recieved new connection from {}.".format(addr))
-                connections.append(sock)
 
-                # TODO: Change request handler call to pass in the certificate mode
+                 # TODO: Change request handler call to pass in the certificate mode
+                connections.append(sock) #append to dictionary and log whether they are logged in
                 handler = RequestHandler(sock)
                 handler.start()
             except socket.error:
