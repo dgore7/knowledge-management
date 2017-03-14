@@ -6,7 +6,7 @@
 
 """ All the sqlite3 functions needed for querying the db (encapsulates the sql code)
     DB object used by the data_retriever"""
-
+import os
 import sqlite3
 import threading
 import time
@@ -63,6 +63,28 @@ class DB:
              FOREIGN KEY (filename, group_id) REFERENCES FILE(filename, group_id) ON DELETE CASCADE,
              FOREIGN KEY (tagname)  REFERENCES TAG(tagname) ON DELETE CASCADE ,
              PRIMARY KEY (filename, tagname));''')
+
+        self.conn.execute(""" INSERT OR IGNORE INTO GROUPS(id, groupname, user_created)
+                              VALUES (?,?,?)""", (0, 'SHARED_KM_REPO', False))
+
+        self.conn.execute(""" INSERT OR IGNORE INTO USER(username, password, repo_id)
+                              VALUES (?,?,?)""", ('DUMMY_SHARED_USER', 'LOL NO PASS', 0))
+
+
+        path_exists = os.path.exists(
+            os.path.normpath(
+                os.path.join(
+                    os.getcwd(),
+                    'FILE_REPO',
+                    'SHARED_KM_REPO')))
+
+        if not path_exists:
+            os.makedirs(
+                os.path.normpath(
+                    os.path.join(
+                        os.getcwd(),
+                        'FILE_REPO',
+                        'SHARED_KM_REPO')))
 
         self.conn.commit()
 
@@ -260,7 +282,7 @@ class DB:
                                   (file_name, group_id, tag))
             self.conn.commit()
         except sqlite3.Error as e:
-            print("An Error Occured in upload: " + str(e.args) + "\n\t\t all vars = " + str(locals()))
+            print("An Error occurred in upload: " + str(e.args) + "\n\t\t all vars = " + str(locals()))
 
     def get_personal_repo_id(self, uname):
         return self.conn.execute('SELECT repo_id FROM USER WHERE username=?', (uname,)).fetchone()[0]
@@ -268,10 +290,11 @@ class DB:
     def get_groups(self, uname):
         cursor = self.conn.cursor()
         try:
-            cursor.execute("""SELECT GROUPS.groupname, GROUPS.id FROM
+            cursor.execute("""SELECT GROUPS.id, GROUPS.groupname FROM
                               GROUPS INNER JOIN USER_GROUP
                               ON GROUPS.id = USER_GROUP.group_id
-                              WHERE username = ?
+                              WHERE username = ? AND
+                              GROUPS.groupname NOT LIKE '%personal_repo'
                             """,
                             (uname,))
         except Exception as e:

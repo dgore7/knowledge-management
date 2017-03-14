@@ -9,7 +9,6 @@ class verboseFunc:
     def __call__(self, *args, **kwargs):
         print("\n=========== Entering " + self.func.__name__ + " ===========\n")
         print("called with: ")
-        print(locals())
         print('\targs: ', args)
         print('\tkwargs: ', kwargs)
         result = self.func(*args, **kwargs)
