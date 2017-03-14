@@ -165,17 +165,18 @@ class Client:
         return 1
 
 
-    def addMember(self, member_name):
+    def addMember(self, gid, member_name):
         connection = self.sock
         message = "member_add".encode()
         connection.send(message)
         status_code = connection.recv(2)
 
-        if status_code != FAILURE:
+        if status_code != SUCCESS:
             print("Error")
             return False
 
-        message = member_name.encode()
+        message = "gid:{};uname:{}".format(gid, member_name)
+        message = message.encode()
         connection.send(message)
         result = connection.recv(2)
         if result == SUCCESS:
@@ -183,18 +184,18 @@ class Client:
         else:
             return False
 
-    def removeMember(self, member_name):
+    def removeMember(self, gid, member_name):
         connection = self.sock
 
         connection.send("member_remove".encode())
-
         status_code = connection.recv(2)
 
         if status_code != SUCCESS:
             print("Error")
             return False
 
-        message = member_name.encode()
+        message = "gid:{};uname:{}".format(gid, member_name)
+        message = message.encode()
         connection.send(message)
         result = connection.recv(2)
         if result == SUCCESS:
@@ -222,13 +223,13 @@ class Client:
             return False
         msg = ['fname:', filename.split('/')[-1], ';']
         msg.extend(['notes:', notes, ';'])
-        print(tags)
+        msg.extend(['size:', str(file_stat.st_size), ';'])
         msg.extend(['mod_time:', mod_time, ';'])
-        ######### Add statements to determine where to upload
         msg.extend(['gid:', repo, ';'])
+        print(tags)
         tags_buffer = ['tags:']
         tags_buffer.extend(tag + ',' for tag in tags)
-        if tags: # remove last comma
+        if tags:  # remove last comma
             tags_buffer[-1] = tags_buffer[-1][:-1]
         msg.extend(tags_buffer)
         print(msg)
@@ -238,53 +239,6 @@ class Client:
         if status != client_api.SUCCESS:
             print('ERROR')
             return False
-        # try:
-        #     file_stat = os.stat(filename)
-        #     file_exist = True
-        # except FileNotFoundError:
-        #     file_exist = False
-        #
-        # #print("Recent Access: " + str(time.gmtime(file_stat.st_atime)))
-        # #print("Year: " + str(time_date[0]))
-        # #print("Month: " + str(time_date[1]))
-        # #print("Day: " + str(time_date[2]))
-        # #print("Hour: " + str(time_date[3]))
-        # #print("Minute: " + str(time_date[4]))
-        # #print("Second: " + str(time_date[5]))
-        # #print("Week Day: " + str(time_date[6]))
-        # #print("Year Day: " + str(time_date[7]))
-        #
-        # print("Recent Modification: " + str(file_stat.st_mtime))
-        # time_date2 = time.gmtime(file_stat.st_mtime)
-        # print("Year: " + str(time_date2[0]))
-        # print("Month: " + str(time_date2[1]))
-        # print("Day: " + str(time_date2[2]))
-        # print("Hour: " + str(time_date2[3]))
-        # print("Minute: " + str(time_date2[4]))
-        # print("Second: " + str(time_date2[5]))
-        # print("Week Day: " + str(time_date2[6]))
-        # print("Year Day: " + str(time_date2[7]))
-        #
-        # print("Recent Metadata Change: " + str(file_stat.st_ctime))
-        #
-        # print("ID Owner: " + str(file_stat.st_uid))
-        # print("Group ID Owner: " + str(file_stat.st_gid))
-
-
-        # #file = codecs.open(filename, "rb", "utf-8")
-        #
-        # print("Sending info")
-        #
-        # date_time = time.gmtime(file_stat.st_atime)
-        # file_date_info = str(date_time[0]) + \
-        #                      "|" + str(date_time[1]) + \
-        #                      "|" + str(date_time[2]) + \
-        #                      "|" + str(date_time[3]) + \
-        #                      "|" + repo
-        #
-        # connection.send(file_date_info.encode())
-        #
-        # status_code = connection.recv(7)
 
         file = open(filename, "rb")
 
@@ -296,55 +250,67 @@ class Client:
         return True
         # connection.close()
 
-    def download(self, filename):
+    def download(self, filename, gid):
+        if not filename or not gid:
+            return False
         connection = self.sock
         connection.send("download".encode())
 
         status_code = connection.recv(2)
+        if status_code != SUCCESS:
+            print("An error occurred when trying to download a file.")
+            return False
 
-        connection.send(filename.encode())
+        message = ['filename:', filename, ';']
+        message.extend(['gid:', gid])
+        message = ''.join(message)
+        message = message.encode()
+        connection.send(message)
+
+        status_code = connection.recv(2)
+        if status_code != SUCCESS:
+            print("An error occurred when trying to download a file.")
+            return False
 
         print("Sent: " + filename)
-
         file = open(filename, 'wb')
 
         while True:
             line = connection.recv(1024)
-            if not len(line):
+            if line == SOCKET_EOF:
                 break
             else:
                 file.write(line)
 
         file.close()
 
-    # def search(self, filename):
-    #     connection = self.connect()
-    #
-    #     connection.send("search".encode())
-    #
-    #     status_code = connection.recv(2)
-    #
-    #     #Maybe can use query statement here
-    #     connection.send(filename.encode())
-    #     print(filename)
-    #
-    #     connection.close()
-
     def filter_search(self, tags, keywords):
         print(tags)
         print(keywords)
 
-    def delete(self, filename):
+    def delete(self, filename, gid):
+        if not filename or gid:
+            return False
         connection = self.sock
         connection.send("delete".encode())
 
         status_code = connection.recv(2)
+        if status_code != SUCCESS:
+            print("An error occurred when trying to delete a file.")
+            return False
 
-        connection.send(filename.encode())
-        print(filename)
+        message = ['filename:', filename, ';']
+        message.extend(['gid:', gid])
+        message = ''.join(message)
+        message = message.encode()
+        connection.send(message)
 
-        status = None
+        status_code = connection.recv(2)
+        if status_code != SUCCESS:
+            print("An error occurred when trying to download a file.")
+            return False
 
+        print("Deleted: " + filename)
         repay = connection.recv(7)
         if repay.decode() != "SUCCESS":
             status = 1
@@ -362,18 +328,10 @@ class Client:
         connection = self.connect()
         connection.close()
 
-    def retrieve(self, filename):
-        connection = self.sock
-        connection.send("retrieve".encode())
-
-        connection.send(filename.encode())
-        print(filename)
-        # sock.close()
-
     def retrieve_repo(self, group_ids=None):
         connection = self.sock
         if not group_ids:
-            raise RuntimeError('Arguements required')
+            return []
         connection.send("retrieve_repo".encode())
         result = connection.recv(2)
         if not result == client_api.SUCCESS:
@@ -416,7 +374,7 @@ class Client:
         result = connection.recv(2)
 
         if result != SUCCESS:
-            print("failed in retrieve groups2")
+            print("No groups found")
             return []
 
         chunks = []
@@ -433,6 +391,35 @@ class Client:
             return []
         return groups
 
+    def get_group_members(self, gid):
+        if not gid:
+            return []
+        connection = self.sock
+        connection.send("groups_get_member".encode())
+        result = connection.recv(2)
+
+        if result != SUCCESS:
+            print("failed in retrieve members")
+            return []
+
+        message = "gid:" + str(gid)
+        message = message.encode()
+        connection.send(message)
+        result = connection.recv(2)
+
+        if result != SUCCESS:
+            print("No members found")
+            return []
+
+        members = []
+        while True:
+            bytes_received = connection.recv(64)
+            if bytes_received == SOCKET_EOF:
+                break
+            else:
+                members.append(bytes_received.decode())
+        return members
+
     def search(self, filename):
         connection = self.sock
         connection.send("search".encode())
@@ -445,12 +432,13 @@ class Client:
     def delete(self, filename, group_id):
         connection = self.sock
         connection.send("delete".encode())
-        if not connection.recv(2).decode() == client_api.SUCCESS:
+        if not connection.recv(2) == SUCCESS:
             return False
         msg = 'filename:' + filename + ';group_id:' + group_id
-        connection.send(msg.encode())
-        result = connection.recv(1024).decode()
-        if result != client_api.SUCCESS:
+        msg = msg.encode()
+        connection.send(msg)
+        result = connection.recv(2)
+        if result != SUCCESS:
             print(result)
             return False
         return True

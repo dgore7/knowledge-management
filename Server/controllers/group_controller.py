@@ -46,7 +46,7 @@ def deleteGroup(connection, group_info):
     print("group "+gname+" has been deleted!")
 
 
-def addMember(connection,member_info):
+def addMember(connection, member_info):
     print("inside Add member Handler")
     gid = member_info['gid']
     uname = member_info['uname']
@@ -66,7 +66,7 @@ def removeMember(connection, member_info):
     print("Inside Remove Member Handler")
     gid = member_info['gid']
     uname = member_info['uname']
-    result = db.delete_user_from_group(gid,uname)
+    result = db.delete_user_from_group(gid, uname)
     if result:
         connection.send(SUCCESS)
     else:
@@ -90,5 +90,10 @@ def retrieve_groups(connection, groups_info):
     connection.send(result)
     connection.send(SOCKET_EOF)
 
-
-
+def get_members(connection, group_info):
+    gid = int(group_info['gid'])
+    members = db.get_group_members(gid)
+    connection.send(SUCCESS)
+    for member in members:
+        connection.send(member.encode())
+    connection.send(SOCKET_EOF)

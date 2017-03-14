@@ -6,6 +6,8 @@ import os
 import pickle
 from . import db, SUCCESS, FAILURE
 
+prefix = 'FILE_REPO'
+
 @verboseFunc
 def upload_file(connection, upload_info):
     """
@@ -22,17 +24,18 @@ def upload_file(connection, upload_info):
     group_id = int(upload_info['gid'])
     notes = upload_info['notes']
     mod_time = float(upload_info['mod_time'])
+    file_size = int(upload_info['size'])
     if group_id != 0:
         owner = db.get_username(group_id)
     else:
         owner = 'DUMMY_SHARED_USER'
-    db.upload(filename, tags, owner, group_id, notes, mod_time)
+    db.upload(filename, tags, owner, group_id, notes, mod_time, file_size)
 
-    if  db.__contains__(filename,owner):
+    if db.__contains__(filename,owner):
         connection.send(FAILURE + "ERROR: file already exists".encode())
     else:
         connection.send(SUCCESS)
-    prefix = 'FILE_REPO'
+
     repo_name = db.repo_name(group_id)
     if not repo_name:
         print('REPO NAME ERROR')
@@ -44,19 +47,6 @@ def upload_file(connection, upload_info):
             repo_name,
             filename)), 'wb')
     print("\tOpened file: " + filename)
-    # date_time_info = connection.recv(1024)
-    #
-    # print(date_time_info)
-    #
-    # print("File receieved. Sending response.")
-    #
-    # connection.send("SUCCESS".encode())
-    #
-    # months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-    # file_metadata = date_time_info.decode().split("|")
-    #
-    # month = months[int(file_metadata[1]) - 1]
-    # print(file_metadata[0] + " " + month)
 
     while True:
         line = connection.recv(1024)
@@ -71,18 +61,30 @@ def upload_file(connection, upload_info):
 
 
 @verboseFunc
-def retrieve_file(connection, filename):
+def retrieve_file(connection, file_info):
 
     print("Inside RetrieveHandler")
-    print(filename.decode())
-    file = open(filename, 'rb')
+    filename = file_info['filename']
+    gid = file_info['gid']
+    repo_name = db.repo_name(gid)
+    try:
+        file = open(os.path.normpath(
+            os.path.join(
+                os.getcwd(),
+                prefix,
+                repo_name,
+                filename)), 'rb')
+    except FileNotFoundError:
+        connection.send(FAILURE)
+        return
+    connection.send(SUCCESS)
 
     for line in file:
         connection.send(line)
 
-    print("\tOpened file: " + filename.decode())
-
+    print("\tOpened file: " + file.name)
     file.close()
+    connection.send(SOCKET_EOF)
     print("Leaving RetrieveHandler")
 
 

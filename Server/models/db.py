@@ -35,6 +35,7 @@ class DB:
              notes      TEXT,
              group_id   INTEGER,
              mod_time   INTEGER,
+             size       INTEGER,
              PRIMARY KEY (filename, group_id),
              FOREIGN KEY (owner)    REFERENCES USER(username),
              FOREIGN KEY (group_id) REFERENCES GROUPS(id));''')
@@ -204,14 +205,15 @@ class DB:
     def retrieve_repo(self, gid):
         cursor = self.conn.cursor()
         try:
-            cursor.execute("SELECT * FROM FILE WHERE group_id=?",
+            cursor.execute("""SELECT filename, owner, timestamp, notes, mod_time, size, group_id
+                           FROM FILE WHERE group_id=?""",
                             (gid,))
             files = cursor.fetchall()
             result = []
             print(files)
             for file in files:
                 cursor.execute('SELECT tagname FROM FILE_TAG WHERE filename=? AND group_id=?',
-                               (file[0], file[4]))
+                               (file[0], gid))
                 result.append(file + tuple(tag[0] for tag in cursor.fetchall()))
             return result
 
@@ -227,6 +229,15 @@ class DB:
         except sqlite3.Error as e:
             print('Error in get_username', e)
 
+    def get_group_members(self, gid):
+        cursor = self.conn.cursor()
+        try:
+            cursor.execute("SELECT username FROM USER_GROUP WHERE group_id=?",
+                           (gid,))
+            return tuple(tup[0] for tup in cursor.fetchall())
+        except sqlite3.Error as e:
+            print('Error in get_username', e)
+
     def repo_name(self, gid):
         cursor = self.conn.cursor()
         try:
@@ -236,7 +247,7 @@ class DB:
         except sqlite3.Error as e:
             print('Error in repo_name', e)
 
-    def upload(self, file_name, tags, owner, group_id, notes, mod_time):  # Written by Ayad
+    def upload(self, file_name, tags, owner, group_id, notes, mod_time, size):  # Written by Ayad
         """
         This method inserts data into the database
         :param mod_time:
@@ -249,9 +260,9 @@ class DB:
         """
         try:
             self.conn.execute("""INSERT INTO
-                              FILE(filename, owner, timestamp, group_id, notes, mod_time)
-                              VALUES (?,?,?,?,?,?)""",
-                              (file_name, owner, time.time(), group_id, notes, mod_time))
+                              FILE(filename, owner, timestamp, group_id, notes, mod_time, size)
+                              VALUES (?,?,?,?,?,?,?)""",
+                              (file_name, owner, time.time(), group_id, notes, mod_time, size))
             for tag in tags:
                 self.conn.execute("INSERT OR IGNORE INTO TAG VALUES(?)",
                                   (tag,))

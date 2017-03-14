@@ -67,10 +67,13 @@ class RequestHandler(threading.Thread):
                         msg = self.parse_request(msg)
                         f_ctrlr.upload_file(self.connection, msg)
 
-                    elif client_option == "retrieve":
+                    elif client_option == "download":
+                        self.connection.send(SUCCESS)
                         msg = self.connection.recv(1024)
-                        print("Retrieving File: " + msg.decode())
-                        f_ctrlr.retrieve_file(msg)
+                        msg = msg.decode()
+                        print("Retrieving File: " + msg)
+                        msg = self.parse_request(msg)
+                        f_ctrlr.retrieve_file(self.connection, msg)
 
                     elif client_option == "retrieve_repo":
                         self.connection.send(SUCCESS)
@@ -86,9 +89,11 @@ class RequestHandler(threading.Thread):
 
                     elif client_option == "delete":
                         self.connection.send(SUCCESS)
-                        msg = self.connection.recv(1024).decode()
+                        msg = self.connection.recv(1024)
+                        msg = msg.decode()
                         print("Deleting file: " + msg)
-                        f_ctrlr.delete_file(self.connection, self.parse_request(msg))
+                        msg = self.parse_request(msg)
+                        f_ctrlr.delete_file(self.connection, msg)
 
                     elif client_option == "create_group":
                         self.connection.send(SUCCESS)
@@ -115,12 +120,20 @@ class RequestHandler(threading.Thread):
                         g_ctrlr.removeMember(self.connection, msg)
 
                     elif client_option == "groups_retrieve":
-                        self.connection.send("OK".encode())
+                        self.connection.send(SUCCESS)
                         msg = self.connection.recv(1024)
                         msg = msg.decode()
                         print("Retrieving groups: " + msg)
                         msg = self.parse_request(msg)
                         g_ctrlr.retrieve_groups(self.connection, msg)
+
+                    elif client_option == "groups_get_member":
+                        self.connection.send(SUCCESS)
+                        msg = self.connection.recv(1024)
+                        msg = msg.decode()
+                        print("Retrieving group members: " + msg)
+                        msg = self.parse_request(msg)
+                        g_ctrlr.get_members(self.connection, msg)
 
                     else:
                         self.connection.send(FAILURE)
