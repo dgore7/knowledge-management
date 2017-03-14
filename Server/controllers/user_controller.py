@@ -8,18 +8,8 @@ from Server import loginDecryption
 @verboseFunc
 def login_user(connection, login_info):
     username = login_info['username']
-    login = loginDecryption.LoginDecoding(username)
-    username = login.getUsername()
     password = login_info['password']
-    hash_dic = db.get_hashinfo(username)
-    hashed_pw = hash_dic.get("password")
-    salt = hash_dic.get("salt")
-    login.setSalt(salt)
-    login.setAttemptedPasswordHash(password)
-    login.setHashedPassword(hashed_pw)
-    if login.checkPassword()==True:
-        repo_id = db.login(username, hashed_pw)
-        return repo_id
+    return db.login(username, password)
 
 @verboseFunc
 def register_user(register_info):
@@ -27,13 +17,12 @@ def register_user(register_info):
     password = register_info['password']
     sec_question = register_info["sec_question"]
     sec_answer = register_info["sec_answer"]
-    password_salt = register_info["password_salt"]
     print("username: " + username)
     print("password: " +password)
     print ("question: " +sec_question)
     print ("answer:" + sec_answer)
     print("Leaving RegisterHandler")
-    repo_id = db.register(username, password, sec_question, sec_answer, password_salt)
+    repo_id = db.register(username, password, sec_question, sec_answer)
     print(repo_id)
     if repo_id:
         os.makedirs(
