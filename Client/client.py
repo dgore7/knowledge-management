@@ -1,3 +1,9 @@
+__copyright__ = "Copyright 2017. DePaul University. "
+__license__ =  "All rights reserved. This work is distributed pursuant to the Software License for Community Contribution of Academic Work, dated Oct. 1, 2016. For terms and conditions, please see the license file, which is included in this distribution."
+__author__ = "Ayadullah Syed, Jose Palacios, David Gorelik, Joshua Smith, Jasmine Farley, Jessica Hua, Steve Saucedo, Serafin Balcazar"
+
+
+
 import sys
 import socket
 import os
@@ -8,6 +14,7 @@ import pickle
 from pickle import UnpicklingError
 
 from Client import client_c, SUCCESS, FAILURE, global_username
+from Client import loginEncryption
 from Client.client_c import client_api
 import codecs
 import ssl
@@ -72,22 +79,27 @@ class Client:
             print("Nothing to disconnect!")
 
     def login(self, username, password):
+        """Takes the login information, ecrypts it, and prepares it to be sent to the server."""
+
         connection = self.sock
+
         connection.send("login".encode())
-        print("Hello")
         status_code = connection.recv(2)
-        print("MSG Replayed")
+
         if status_code != client_api.SUCCESS:
             print("Failled")
             return 0
 
-        login_info = "username:" + username + ";" + "password:" + password
+        register = loginEncryption.LoginEncoding()
+        register.setUsername(username)
+        register.setPassword(password)
+        username = register.getUsername()
+        password = register.getPassword()
 
-        # print(login_info)
+        login_info = "username:" + username + ";password:" + password
 
         connection.send(login_info.encode())
-        # self.sock.send(login_info.encode())
-        # connection.close()
+
         server_response = connection.recv(2)  # SUCCESS or FAILURE
         print(server_response.decode())
         if server_response == client_api.SUCCESS:
@@ -100,25 +112,31 @@ class Client:
         else:
             return 0
 
+
         global_username.clear()
         global_username.append(username)
         return 1
 
-    def register(self, username, password):
+    def register(self, username, password, sec_question, sec_answer):
+        """Takes the parameters, hashes the password, encodes the username, and prepares it to be sent to server"""
+
         if self.connected == False:
-            return 0  # Maybe change to a unique code stating we are not connected?
+            print("how'd I get here??")
+            return 0
         connection = self.sock
         connection.send("register".encode())
 
-        # credentials = LoginEncoding(username, password)
-        # username = credentials.getUsername()
-        # password = credentials.getPassword()
-        # key = credentials.getKey()
+        register = loginEncryption.LoginEncoding()
+        register.setUsername(username)
+        register.setPassword(password)
+        username = register.getUsername()
+        password = register.getPassword()
 
-        register_info = "username:" + username + ";" + "password:" + password
+        register_info = "username:" + username + ";password:" + password + ";sec_question:" \
+                        + sec_question + ";sec_answer:" + sec_answer
         connection.send(register_info.encode())
         server_response = connection.recv(2)
-        if server_response == client_api.SUCCESS:
+        if server_response == SUCCESS:
             repoids.clear()
             packed_repo_id = connection.recv(4)
             repo_id_tup = struct.unpack('<L', packed_repo_id)

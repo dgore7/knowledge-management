@@ -1,3 +1,7 @@
+__copyright__ = "Copyright 2017. DePaul University. "
+__license__ =  "All rights reserved. This work is distributed pursuant to the Software License for Community Contribution of Academic Work, dated Oct. 1, 2016. For terms and conditions, please see the license file, which is included in this distribution."
+__author__ = "Ayadullah Syed, Jose Palacios, David Gorelik, Joshua Smith, Jasmine Farley, Jessica Hua, Steve Saucedo, Serafin Balcazar"
+
 import threading
 
 import struct
@@ -27,14 +31,13 @@ class RequestHandler(threading.Thread):
             try:
                 raw_request = self.connection.recv(2048)
                 print(raw_request.decode())
-
                 if len(raw_request):
                     client_option = raw_request.decode()
                     print("CO: " + client_option)
-
                     if client_option == "login":
                         print("SENDING OK MESSAGE!")
                         self.connection.send(SUCCESS)
+
                         msg = self.connection.recv(1024)
                         login_info = self.parse_request(msg.decode())
                         print("Logging in with: " + msg.decode())

@@ -24,9 +24,9 @@ class DB:
         self.conn.execute('''CREATE TABLE IF NOT EXISTS USER
             (username   TEXT PRIMARY KEY  NOT NULL,
              password   TEXT              NOT NULL,
+             repo_id    INTEGER           NOT NULL,
              question   TEXT                      ,
              answer     TEXT                      ,
-             repo_id    INTEGER           NOT NULL,
              FOREIGN KEY (repo_id) REFERENCES GROUPS(id));''')
 
 
@@ -108,7 +108,7 @@ class DB:
         if user is None:
             return None
         elif user[0] == username:
-            return user[4]
+            return user[2]
 
 
     def register(self, username, pword, sec_question, sec_answer):

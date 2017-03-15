@@ -1,6 +1,10 @@
+__copyright__ = "Copyright 2017. DePaul University. "
+__license__ =  "All rights reserved. This work is distributed pursuant to the Software License for Community Contribution of Academic Work, dated Oct. 1, 2016. For terms and conditions, please see the license file, which is included in this distribution."
+__author__ = "Ayadullah Syed, Jose Palacios, David Gorelik, Joshua Smith, Jasmine Farley, Jessica Hua, Steve Saucedo, Serafin Balcazar"
+
 import tkinter as tk
 
-from tkinter import TOP, RAISED
+from tkinter import *
 
 from Client import start
 from Client import upload
@@ -84,6 +88,7 @@ class MenuPage(tk.Frame):
         logoutButton = tk.Button(right, text="Log Out",
                                  command=lambda: gui.show_frame(start.StartPage))
         logoutButton.pack(ipadx=6)
+
 
     def update_and_search(self, gui):
         gui.show_frame(search.SearchPage)

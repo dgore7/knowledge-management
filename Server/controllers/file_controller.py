@@ -1,3 +1,7 @@
+__copyright__ = "Copyright 2017. DePaul University. "
+__license__ =  "All rights reserved. This work is distributed pursuant to the Software License for Community Contribution of Academic Work, dated Oct. 1, 2016. For terms and conditions, please see the license file, which is included in this distribution."
+__author__ = "Ayadullah Syed, Jose Palacios, David Gorelik, Joshua Smith, Jasmine Farley, Jessica Hua, Steve Saucedo, Serafin Balcazar"
+
 from Server import verboseFunc
 from . import db, SOCKET_EOF
 import os
@@ -50,7 +54,6 @@ def upload_file(connection, upload_info):
 
     while True:
         line = connection.recv(1024)
-        print(line)
         if line == SOCKET_EOF:
             break
         else:
@@ -116,8 +119,18 @@ def delete_file(connection, query):
     if 'filename' not in query or 'group_id' not in query:
         connection.send(connection.send(FAILURE + " ERROR: missing parameters".encode()))
     filename = query['filename']
-    group_id = query['group_id']
+    group_id = int(query['group_id'])
+    repo_name = db.repo_name(group_id)
     if db.delete(filename, group_id):
+        try:
+            os.remove(os.path.join(
+                    os.getcwd(),
+                    prefix,
+                    repo_name,
+                    filename))
+        except FileNotFoundError:
+            connection.send(FAILURE)
+            return
         connection.send(SUCCESS)
     else:
         connection.send(FAILURE + " ERROR: deletion failed".encode())
