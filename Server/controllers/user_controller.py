@@ -6,7 +6,6 @@ from Server import verboseFunc
 from . import db
 from . import SUCCESS, FAILURE
 import os
-from Server import loginDecryption
 
 
 @verboseFunc

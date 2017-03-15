@@ -112,7 +112,6 @@ class Client:
         else:
             return 0
 
-
         global_username.clear()
         global_username.append(username)
         return 1
@@ -126,6 +125,7 @@ class Client:
         connection = self.sock
         connection.send("register".encode())
 
+        register_info = "username:" + username + ";" + "password:" + password
         register = loginEncryption.LoginEncoding()
         register.setUsername(username)
         register.setPassword(password)
@@ -136,7 +136,7 @@ class Client:
                         + sec_question + ";sec_answer:" + sec_answer
         connection.send(register_info.encode())
         server_response = connection.recv(2)
-        if server_response == SUCCESS:
+        if server_response == client_api.SUCCESS:
             repoids.clear()
             packed_repo_id = connection.recv(4)
             repo_id_tup = struct.unpack('<L', packed_repo_id)
@@ -266,7 +266,6 @@ class Client:
         file.close()
         print("Closing file")
         return True
-        # connection.close()
 
     def download(self, filename, gid):
         if not filename or not gid:
@@ -301,50 +300,6 @@ class Client:
                 file.write(line)
 
         file.close()
-
-    def filter_search(self, tags, keywords):
-        print(tags)
-        print(keywords)
-
-    def delete(self, filename, gid):
-        if not filename or gid:
-            return False
-        connection = self.sock
-        connection.send("delete".encode())
-
-        status_code = connection.recv(2)
-        if status_code != SUCCESS:
-            print("An error occurred when trying to delete a file.")
-            return False
-
-        message = ['filename:', filename, ';']
-        message.extend(['gid:', gid])
-        message = ''.join(message)
-        message = message.encode()
-        connection.send(message)
-
-        status_code = connection.recv(2)
-        if status_code != SUCCESS:
-            print("An error occurred when trying to download a file.")
-            return False
-
-        print("Deleted: " + filename)
-        repay = connection.recv(7)
-        if repay.decode() != "SUCCESS":
-            status = 1
-
-        else:
-            status = 0
-
-        connection.close()
-
-        print(status)
-
-        return status
-
-    def close_socket(self):
-        connection = self.connect()
-        connection.close()
 
     def retrieve_repo(self, group_ids=None):
         connection = self.sock
@@ -438,15 +393,6 @@ class Client:
                 members.append(bytes_received.decode())
         return members
 
-    def search(self, filename):
-        connection = self.sock
-        connection.send("search".encode())
-
-        # Maybe can use query statement here
-        connection.send(filename.encode())
-        print(filename)
-        # sock.close()
-
     def delete(self, filename, group_id):
         connection = self.sock
         connection.send("delete".encode())
@@ -460,8 +406,10 @@ class Client:
             print(result)
             return False
         return True
-        # sock.close()
 
+    def close_socket(self):
+        connection = self.connect()
+        connection.close()
 
 if __name__ == '__main__':
     print("enter a query:")
@@ -470,4 +418,3 @@ if __name__ == '__main__':
     sock.connect(("localhost", int(port)))
     message = "query:" + sys.stdin.readline()
     sock.send(message.encode())
-    # sock.close()
