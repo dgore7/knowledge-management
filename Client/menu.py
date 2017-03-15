@@ -5,6 +5,8 @@ __author__ = "Ayadullah Syed, Jose Palacios, David Gorelik, Joshua Smith, Jasmin
 import tkinter as tk
 
 from tkinter import *
+from PIL import ImageTk, Image
+
 
 from Client import start
 from Client import upload
@@ -88,6 +90,13 @@ class MenuPage(tk.Frame):
         logoutButton = tk.Button(right, text="Log Out",
                                  command=lambda: gui.show_frame(start.StartPage))
         logoutButton.pack(ipadx=6)
+
+        image = Image.open("penguin.png")
+        self.image = Image.composite(image, Image.new('RGB', image.size, 'white'), image)
+        img = ImageTk.PhotoImage(image=self.image)
+        panel = tk.Label(self, image=img)
+        panel.image = img
+        panel.pack()
 
 
     def update_and_search(self, gui):
